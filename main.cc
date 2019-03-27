@@ -85,7 +85,8 @@ int main(int argc, char** argv)
     }
   }
 
-
+  // Check if the get face area routine is working
+  printf("The area is $f \n", get_face_area(face_number));
 
   // Use some library to solve the assembled matrix
 

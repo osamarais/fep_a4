@@ -110,3 +110,17 @@ int get_edge_bound_num(pMeshEnt ment, std::vector<std::vector<pMeshEnt>> &mesh_e
 
 
 // Write a function to calculate the areas of the element if required
+// In this function, pass a mesh entity (face) and get the area of that face
+double get_face_area(pMeshEnt face){
+  // Get all the adjacent vertices
+  Adjacent vertices;
+  int num_verts = pumi_ment_getAdjacent(face,0,vertices);
+  // Get the coordinates of the vertices
+  std::std::vector<double[2]> coordinates;
+  for (int i=0; i<num_verts; i++){
+    double xyz[3];
+    pumi_node_getCoord(vertices[i],0,xyz);
+    coordinates.push_back([xyz[0] xyz[1]]);
+  }
+  return 0.0;
+}
