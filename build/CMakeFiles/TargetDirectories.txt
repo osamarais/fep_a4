@@ -1,0 +1,3 @@
+/home/osama/Desktop/project/build/CMakeFiles/rebuild_cache.dir
+/home/osama/Desktop/project/build/CMakeFiles/main.dir
+/home/osama/Desktop/project/build/CMakeFiles/edit_cache.dir

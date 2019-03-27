@@ -61,7 +61,31 @@ int main(int argc, char** argv)
 
 
   // Now the element routines must be run over the mesh elements in a loop while assembling the matrix.
-  get_element_type(mesh);
+  int element_type = get_element_type(mesh);
+  printf("The element type is %d\n", element_type);
+  //check the boundary elements code
+  std::vector<std::vector<pMeshEnt>> all_on_boundary;
+  get_all_boundary_elements(geom, mesh, all_on_boundary);
+
+  // Get some specific element in the mesh and check if it is on the boundary of not
+  printf("checking if some entity is on the boundary\n");
+  int face_number = 0;
+  pMeshEnt face_tocheck = pumi_mesh_findEnt(mesh,2,face_number);
+  // get the adjacent edges of the face
+  Adjacent adjacent;
+  int num_adj = pumi_ment_getAdjacent(face_tocheck,1,adjacent);
+  for (int i = 0;i<num_adj;i++){
+    int boundary_number = get_edge_bound_num(adjacent[i],all_on_boundary);
+    if(boundary_number){
+      printf("Is on boundary %d\n", boundary_number);
+      break;
+    }
+    else if(i == num_adj-1){
+      printf("Is not on boundary \n");
+    }
+  }
+
+
 
   // Use some library to solve the assembled matrix
 

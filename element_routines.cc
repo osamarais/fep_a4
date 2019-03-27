@@ -52,6 +52,7 @@ int get_element_type(pMesh mesh){
     printf("Unidentified Element!!!\n");
   }
   //printf("The element_type type identified is %d \n", element_type);
+  return element_type;
 }
 
 
@@ -60,6 +61,8 @@ int get_element_type(pMesh mesh){
 // This means that: loop over the elements in any order that is found to be okay
 // Simply get the numbering from the appropriate numbering we have created for the faces and the nodes.
 // Over here we must check if we have already done the reordering or not so that we may use the appropriate numbering from the mesh
+// Another way is to push all new element matrices into a std::vector type container (https://www.geeksforgeeks.org/vector-insert-function-in-c-stl/)
+// and then sort them using some numbering. (https://www.geeksforgeeks.org/sorting-a-vector-in-c/)
 
 
 // Write element routines here to get the coefficients of the elemental matrices.
@@ -68,6 +71,42 @@ int get_element_type(pMesh mesh){
 
 // Write some functions here to deal with the boundary conditions.
 
+// We need to figure out if an element is on a boundary or not.
+
+// Get all the mesh entities classified on ALL geometric boundaries
+// pass some std::vector<std::vector<pMeshEnt>> to the function to get it filled out
+void get_all_boundary_elements(pGeom &g,pMesh &mesh, std::vector<std::vector<pMeshEnt>> &mesh_ents){
+  //printf("getting boundary elements \n");
+  // Iterate over all the geometric edges
+  // put mesh entities classified on those edges into the container
+  for (pGeomIter it = g->begin(1); it!=g->end(1);++it){
+    //printf("looping in Geometry\n");
+    pGeomEnt ge = *it;
+    std::vector<pMeshEnt> entities_on_this;
+    // get all the reverse classified entites on this
+    pumi_gent_getRevClas(ge, entities_on_this);
+    //printf("got the reverse classification\n");
+    // push the subcontainer into the main container
+    mesh_ents.push_back(entities_on_this);
+    //printf("pushed back the subcontainer\n");
+  }
+}
+
+// Function to check which geometric face an element is on (zero is none)
+int get_edge_bound_num(pMeshEnt ment, std::vector<std::vector<pMeshEnt>> &mesh_ents){
+  // do a nested iteration to check if the entity is on a boundary or not
+  int boundary_counter = 0;
+  for(std::vector<std::vector<pMeshEnt>>::iterator it1 = mesh_ents.begin() ; it1!=mesh_ents.end(); ++it1){
+    boundary_counter++;
+    std::vector<pMeshEnt> this_group = *it1;
+    for(std::vector<pMeshEnt>::iterator it2 = this_group.begin() ; it2!=this_group.end(); ++it2){
+      if(*it2 == ment){
+        return boundary_counter;
+      }
+    }
+  }
+  return 0;
+}
 
 
 // Write a function to calculate the areas of the element if required
