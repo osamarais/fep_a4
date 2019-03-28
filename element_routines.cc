@@ -2,7 +2,6 @@
 
 // Minimum requirements are 3 sided and 4 sided Linear and Quaratic Elements
 
-
 // The type of elements in the mesh must be identified. Functions for that are placed here
 /*
 
@@ -57,42 +56,53 @@ int get_element_type(pMesh mesh){
 
 
 
-// The ordering of the elements must be ascertained properly to assemble the matrix.
-// This means that: loop over the elements in any order that is found to be okay
-// Simply get the numbering from the appropriate numbering we have created for the faces and the nodes.
-// Over here we must check if we have already done the reordering or not so that we may use the appropriate numbering from the mesh
-// Another way is to push all new element matrices into a std::vector type container (https://www.geeksforgeeks.org/vector-insert-function-in-c-stl/)
-// and then sort them using some numbering. (https://www.geeksforgeeks.org/sorting-a-vector-in-c/)
-
-
-// Write element routines here to get the coefficients of the elemental matrices.
 
 
 
-// Write some functions here to deal with the boundary conditions.
 
-// We need to figure out if an element is on a boundary or not.
 
-// Get all the mesh entities classified on ALL geometric boundaries
-// pass some std::vector<std::vector<pMeshEnt>> to the function to get it filled out
-void get_all_boundary_elements(pGeom &g,pMesh &mesh, std::vector<std::vector<pMeshEnt>> &mesh_ents){
-  //printf("getting boundary elements \n");
+// Get all the mesh edges classified on ALL geometric boundaries
+// pass std::vector<boundary_edge_struct> to the function to get it filled out
+struct boundary_edge_struct{
+  int boundary;
+  pMeshEnt e;
+};
+struct boundary_vert_struct{
+  int boundary;
+  pMeshEnt e;
+};
+
+void get_all_boundary_edges(pGeom &g,pMesh &mesh, std::vector<boundary_edge_struct> &mesh_ents){
   // Iterate over all the geometric edges
   // put mesh entities classified on those edges into the container
-  for (pGeomIter it = g->begin(1); it!=g->end(1);++it){
-    //printf("looping in Geometry\n");
-    pGeomEnt ge = *it;
+  for (pGeomIter it1 = g->begin(1); it1!=g->end(1);++it1){
+    pGeomEnt ge = *it1;
     std::vector<pMeshEnt> entities_on_this;
     // get all the reverse classified entites on this
     pumi_gent_getRevClas(ge, entities_on_this);
-    //printf("got the reverse classification\n");
     // push the subcontainer into the main container
-    mesh_ents.push_back(entities_on_this);
-    //printf("pushed back the subcontainer\n");
+    for (std::vector<pMeshEnt>::iterator it2 = entities_on_this.begin(); it2!= entities_on_this.end(); ++it2){
+      int faceid = pumi_gent_getID(*it1);
+      boundary_edge_struct this_edge;
+      this_edge.boundary = pumi_gent_getID(*it1);
+      this_edge.e = *it2;
+      mesh_ents.push_back(this_edge);
+    }
   }
 }
 
-// Function to check which geometric face an element is on (zero is none)
+
+// Same code now for vertices
+void get_all_boundary_nodes(pMesh &mesh, std::vector<boundary_vert_struct> &mesh_ents){
+  // Get the adjacent vertices of all the edges.
+  // avoid duplication by checking the list and tallying against e and boundary both
+  // allow vertex to be classifoed on more than one boundary
+}
+
+
+
+
+// Function to check which geometric face (boundary) an element is on (zero is none)
 int get_edge_bound_num(pMeshEnt ment, std::vector<std::vector<pMeshEnt>> &mesh_ents){
   // do a nested iteration to check if the entity is on a boundary or not
   int boundary_counter = 0;
@@ -109,7 +119,6 @@ int get_edge_bound_num(pMeshEnt ment, std::vector<std::vector<pMeshEnt>> &mesh_e
 }
 
 
-// Write a function to calculate the areas of the element if required
 // In this function, pass a mesh entity (face) and get the area of that face
 double get_face_area(pMeshEnt face){
   // Get all the adjacent vertices
@@ -142,3 +151,80 @@ double get_face_area(pMeshEnt face){
   }
   return abs(area);
 }
+
+
+
+// The ordering of the elements must be ascertained properly to assemble the matrix.
+// This means that: loop over the elements in any order that is found to be okay
+// Simply get the numbering from the appropriate numbering we have created for the faces and the nodes.
+// Over here we must check if we have already done the reordering or not so that we may use the appropriate numbering from the mesh
+// Another way is to push all new element matrices into a std::vector type container (https://www.geeksforgeeks.org/vector-insert-function-in-c-stl/)
+// and then sort them using some numbering. (https://www.geeksforgeeks.org/sorting-a-vector-in-c/)
+
+
+// Write element routines here to get the coefficients of the elemental matrices.
+
+// Contributor Calculators
+// Stiffness Contributor
+// Force Contributor (face)
+// Force Contributor (edge)
+
+// Constraint makers
+// Constrain edge
+// Constrain vertex
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//
+
+
+
+
+
+
+
+
+
+
+
+/* backup
+void get_all_boundary_edges(pGeom &g,pMesh &mesh, std::vector<std::vector<pMeshEnt>> &mesh_ents){
+  //printf("getting boundary elements \n");
+  // Iterate over all the geometric edges
+  // put mesh entities classified on those edges into the container
+  for (pGeomIter it = g->begin(1); it!=g->end(1);++it){
+    //printf("looping in Geometry\n");
+    pGeomEnt ge = *it;
+    std::vector<pMeshEnt> entities_on_this;
+    // get all the reverse classified entites on this
+    pumi_gent_getRevClas(ge, entities_on_this);
+    //printf("got the reverse classification\n");
+    // push the subcontainer into the main container
+    mesh_ents.push_back(entities_on_this);
+    //printf("pushed back the subcontainer\n");
+  }
+}
+*/

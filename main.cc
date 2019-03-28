@@ -64,9 +64,14 @@ int main(int argc, char** argv)
   int element_type = get_element_type(mesh);
   printf("The element type is %d\n", element_type);
   //check the boundary elements code
-  std::vector<std::vector<pMeshEnt>> all_on_boundary;
-  get_all_boundary_elements(geom, mesh, all_on_boundary);
-
+  std::vector<boundary_edge_struct> boundary_edges;
+  get_all_boundary_edges(geom,mesh, boundary_edges);
+  // verify this is not changing
+  for (std::vector<boundary_edge_struct>::iterator it = boundary_edges.begin(); it!= boundary_edges.end(); ++it){
+    boundary_edge_struct this_edge = *it;
+    //printf("Now it is %d \n", this_edge.boundary);
+  }
+/*
   // Get some specific element in the mesh and check if it is on the boundary of not
   printf("checking if some entity is on the boundary\n");
   int face_number = 0;
@@ -96,8 +101,9 @@ int main(int argc, char** argv)
   }
   mesh->end(it);
   printf("Total area is %f \n", totalarea);
+*/
 
-  
+
 
   // Use some library to solve the assembled matrix
 

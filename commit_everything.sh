@@ -1,3 +1,3 @@
 git add ./*
-git commit -m "working area calculation"
+git commit -m "routine commit"
 git push -u origin master
