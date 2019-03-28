@@ -92,11 +92,24 @@ void get_all_boundary_edges(pGeom &g,pMesh &mesh, std::vector<boundary_edge_stru
 }
 
 
-// Same code now for vertices
+// get a list of all the vertices on boundaries
 void get_all_boundary_nodes(pMesh &mesh, std::vector<boundary_vert_struct> &mesh_ents){
   // Get the adjacent vertices of all the edges.
   // avoid duplication by checking the list and tallying against e and boundary both
   // allow vertex to be classifoed on more than one boundary
+  // Iterate over the edges
+  for (std::vector<boundary_edge_struct>::iterator it1 = boundary_edges.begin(); it1!= boundary_edges.end(); ++it1){
+    boundary_edge_struct this_edge = *it1;
+    // Get the adjacent edges
+    // go through the container, check if both boundary and e have not been satisfied. if not push back
+    Adjacent adjacent;
+    pumi_ment_getAdjacent(this_edge.e,0,adjacent);
+    for(int i = 0; i< size(adjacent); i ++){
+      for (std::vector<boundary_vert_struct>::iterator it2 = mesh_ents.begin(); it2!= mesh_ents.end(); ++it2){
+        printf("Finding something here\n");
+      }
+    }
+  }
 }
 
 

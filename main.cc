@@ -68,9 +68,11 @@ int main(int argc, char** argv)
   get_all_boundary_edges(geom,mesh, boundary_edges);
   // verify this is not changing
   for (std::vector<boundary_edge_struct>::iterator it = boundary_edges.begin(); it!= boundary_edges.end(); ++it){
-    boundary_edge_struct this_edge = *it;
+    //boundary_edge_struct this_edge = *it;
     //printf("Now it is %d \n", this_edge.boundary);
   }
+  std::vector<boundary_vert_struct> boundary_verts;
+  get_all_boundary_nodes(mesh, boundary_verts);
 /*
   // Get some specific element in the mesh and check if it is on the boundary of not
   printf("checking if some entity is on the boundary\n");
