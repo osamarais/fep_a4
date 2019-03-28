@@ -90,11 +90,11 @@ int main(int argc, char** argv)
   printf("The area is %f \n", myarea);
   pMeshEnt e;
   double totalarea = 0;
-  pMeshIter it = m->begin(2);
-  while ((e = m->iterate(it))){
+  pMeshIter it = mesh->begin(2);
+  while ((e = mesh->iterate(it))){
     totalarea = totalarea + get_face_area(e);
   }
-  m->end(it);
+  mesh->end(it);
   printf("Total area is %f \n", totalarea);
 
   // Use some library to solve the assembled matrix
