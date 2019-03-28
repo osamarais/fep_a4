@@ -88,7 +88,14 @@ int main(int argc, char** argv)
   // Check if the get face area routine is working
   double myarea = get_face_area(face_tocheck);
   printf("The area is %f \n", myarea);
-  
+  pMeshEnt e;
+  double totalarea = 0;
+  pMeshIter it = m->begin(2);
+  while ((e = m->iterate(it))){
+    totalarea = totalarea + get_face_area(e);
+  }
+  m->end(it);
+  printf("Total area is %f \n", totalarea);
 
   // Use some library to solve the assembled matrix
 
