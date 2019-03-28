@@ -97,6 +97,8 @@ int main(int argc, char** argv)
   mesh->end(it);
   printf("Total area is %f \n", totalarea);
 
+  
+
   // Use some library to solve the assembled matrix
 
 

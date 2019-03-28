@@ -125,12 +125,6 @@ double get_face_area(pMeshEnt face){
       double xyz2[3];
       pumi_node_getCoord(vertices[i],0,xyz1);
       pumi_node_getCoord(vertices[i+1],0,xyz2);
-      printf("x coordinate %d %f \n", i, xyz1[0]);
-      printf("y coordinate %d %f \n", i, xyz1[1]);
-      printf("z coordinate %d %f \n", i, xyz1[2]);
-      printf("x coordinate %d %f \n", i+1, xyz2[0]);
-      printf("y coordinate %d %f \n", i+1, xyz2[1]);
-      printf("z coordinate %d %f \n", i+1, xyz2[2]);
       area = area + 0.5*( (xyz1[0]*xyz2[1]) - (xyz1[1]*xyz2[0]) );
     }
     else{
@@ -138,15 +132,8 @@ double get_face_area(pMeshEnt face){
       double xyz2[3];
       pumi_node_getCoord(vertices[i],0,xyz1);
       pumi_node_getCoord(vertices[0],0,xyz2);
-      printf("x coordinate %d %f \n", i, xyz1[0]);
-      printf("y coordinate %d %f \n", i, xyz1[1]);
-      printf("z coordinate %d %f \n", i, xyz1[2]);
-      printf("x coordinate %d %f \n", i+1, xyz2[0]);
-      printf("y coordinate %d %f \n", i+1, xyz2[1]);
-      printf("z coordinate %d %f \n", i+1, xyz2[2]);
       area = area + 0.5*( (xyz1[0]*xyz2[1]) - (xyz1[1]*xyz2[0]) );
     }
-    printf("area is now is %f \n", area);
     //double xy[2];
     //xy[0] = xyz[0];
     //xy[1] = xyz[1];
