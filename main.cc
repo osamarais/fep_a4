@@ -94,6 +94,12 @@ int main(int argc, char** argv)
     printf("Vertex %d is on %d \n", pumi_ment_getID(this_vert.e), this_vert.boundary);
   }
 
+std::vector<int> list;
+pMeshEnt ment = pumi_mesh_findEnt(6);
+get_bound_num(ment, boundary_verts, list);
+
+
+
 /*
   // Get some specific element in the mesh and check if it is on the boundary of not
   printf("checking if some entity is on the boundary\n");
