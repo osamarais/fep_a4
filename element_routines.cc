@@ -48,7 +48,7 @@ int get_element_type(pMesh mesh){
   }
 
   if (0 == element_type){
-    printf("Unidentified Element!!!\n");
+    //printf("Unidentified Element!!!\n");
   }
   //printf("The element_type type identified is %d \n", element_type);
   return element_type;
@@ -107,7 +107,7 @@ void get_all_boundary_nodes(pMesh &mesh, std::vector<boundary_struct> &boundary_
       this_vert.boundary = this_edge.boundary;
       this_vert.e = adjacent[0];
       mesh_ents.push_back(this_vert);
-      printf("Added first vertex\n");
+      //printf("Added first vertex\n");
     }
     // Iterate over adjacents to check of they are in the mesh_ents or not
     for(int i = 0; i< adjacent.size(); i ++){
@@ -128,7 +128,7 @@ void get_all_boundary_nodes(pMesh &mesh, std::vector<boundary_struct> &boundary_
       // if flag is still false, add the vertex
       if (!found){
         mesh_ents.push_back(this_vert);
-        printf("Vertex %d has been added \n", pumi_ment_getID(this_vert.e));
+        //printf("Vertex %d has been added \n", pumi_ment_getID(this_vert.e));
       }
     }
   }
@@ -183,6 +183,47 @@ double get_face_area(pMeshEnt face){
 
 
 
+// Function to get the stiffness matrix contributions of a triangular element
+// The contributions will be to the vertices
+// Therefore loop over the edges only
+// Information needed is
+// The mesh,
+// The boundaries
+// The boundary conditions (this is called as a function inside the function)
+// return a contribution structure
+struct  contribution{
+  int id;
+  double coeff;
+  double known;
+};
+
+contribution linear_tet(pMesh mesh, std::vector<boundary_struct> &boundary_verts, std::vector<boundary_struct> &boundary_edges){
+  contribution tetcontribution;
+  // Check if this node is on a boundary where an essential bounary condition has been specified
+  // If on an essential boundary condition, simple enforce it.
+  //
+  // else
+  // get adjacent regions, loop over them, and get their contributions
+  //
+  return tetcontribution;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // The ordering of the elements must be ascertained properly to assemble the matrix.
 // This means that: loop over the elements in any order that is found to be okay
 // Simply get the numbering from the appropriate numbering we have created for the faces and the nodes.
@@ -202,7 +243,10 @@ double get_face_area(pMeshEnt face){
 // Constrain vertex
 
 
-
+// To assemble the matrix
+// 1) Loop over all the vertices
+// 2) If shape is Lagrange then loop over edges and get their node too
+// 3) Use the new numbering to pass these to an assembly function
 
 
 
@@ -227,32 +271,3 @@ double get_face_area(pMeshEnt face){
 
 
 //
-
-
-
-
-
-
-
-
-
-
-
-/* backup
-void get_all_boundary_edges(pGeom &g,pMesh &mesh, std::vector<std::vector<pMeshEnt>> &mesh_ents){
-//printf("getting boundary elements \n");
-// Iterate over all the geometric edges
-// put mesh entities classified on those edges into the container
-for (pGeomIter it = g->begin(1); it!=g->end(1);++it){
-//printf("looping in Geometry\n");
-pGeomEnt ge = *it;
-std::vector<pMeshEnt> entities_on_this;
-// get all the reverse classified entites on this
-pumi_gent_getRevClas(ge, entities_on_this);
-//printf("got the reverse classification\n");
-// push the subcontainer into the main container
-mesh_ents.push_back(entities_on_this);
-//printf("pushed back the subcontainer\n");
-}
-}
-*/
