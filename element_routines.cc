@@ -62,17 +62,14 @@ int get_element_type(pMesh mesh){
 
 
 // Get all the mesh edges classified on ALL geometric boundaries
-// pass std::vector<boundary_edge_struct> to the function to get it filled out
-struct boundary_edge_struct{
-  int boundary;
-  pMeshEnt e;
-};
-struct boundary_vert_struct{
+// pass std::vector<boundary_struct> to the function to get it filled out
+struct boundary_struct{
   int boundary;
   pMeshEnt e;
 };
 
-void get_all_boundary_edges(pGeom &g,pMesh &mesh, std::vector<boundary_edge_struct> &mesh_ents){
+
+void get_all_boundary_edges(pGeom &g,pMesh &mesh, std::vector<boundary_struct> &mesh_ents){
   // Iterate over all the geometric edges
   // put mesh entities classified on those edges into the container
   for (pGeomIter it1 = g->begin(1); it1!=g->end(1);++it1){
@@ -83,7 +80,7 @@ void get_all_boundary_edges(pGeom &g,pMesh &mesh, std::vector<boundary_edge_stru
     // push the subcontainer into the main container
     for (std::vector<pMeshEnt>::iterator it2 = entities_on_this.begin(); it2!= entities_on_this.end(); ++it2){
       int faceid = pumi_gent_getID(*it1);
-      boundary_edge_struct this_edge;
+      boundary_struct this_edge;
       this_edge.boundary = pumi_gent_getID(*it1);
       this_edge.e = *it2;
       mesh_ents.push_back(this_edge);
@@ -93,30 +90,63 @@ void get_all_boundary_edges(pGeom &g,pMesh &mesh, std::vector<boundary_edge_stru
 
 
 // get a list of all the vertices on boundaries
-void get_all_boundary_nodes(pMesh &mesh, std::vector<boundary_vert_struct> &mesh_ents){
+void get_all_boundary_nodes(pMesh &mesh, std::vector<boundary_struct> &boundary_edges, std::vector<boundary_struct> &mesh_ents){
   // Get the adjacent vertices of all the edges.
   // avoid duplication by checking the list and tallying against e and boundary both
   // allow vertex to be classifoed on more than one boundary
   // Iterate over the edges
-  for (std::vector<boundary_edge_struct>::iterator it1 = boundary_edges.begin(); it1!= boundary_edges.end(); ++it1){
-    boundary_edge_struct this_edge = *it1;
+  for (std::vector<boundary_struct>::iterator it1 = boundary_edges.begin(); it1!= boundary_edges.end(); ++it1){
+    boundary_struct this_edge = *it1;
     // Get the adjacent edges
     // go through the container, check if both boundary and e have not been satisfied. if not push back
     Adjacent adjacent;
     pumi_ment_getAdjacent(this_edge.e,0,adjacent);
-    for(int i = 0; i< size(adjacent); i ++){
-      for (std::vector<boundary_vert_struct>::iterator it2 = mesh_ents.begin(); it2!= mesh_ents.end(); ++it2){
-        printf("Finding something here\n");
+    if (mesh_ents.size() == 0){
+      // push back the first vertices to intitialize the iteration
+      boundary_struct this_vert;
+      this_vert.boundary = this_edge.boundary;
+      this_vert.e = adjacent[0];
+      mesh_ents.push_back(this_vert);
+      printf("Added first vertex\n");
+    }
+    // Iterate over adjacents to check of they are in the mesh_ents or not
+    for(int i = 0; i< adjacent.size(); i ++){
+      bool found = false;
+      boundary_struct this_vert;
+      for (std::vector<boundary_struct>::iterator it2 = mesh_ents.begin(); it2!= mesh_ents.end(); ++it2){
+        //printf("Finding something here\n");
+        // if found flag and break
+        this_vert.e = adjacent[i];
+        this_vert.boundary = this_edge.boundary;
+        boundary_struct other_vert;
+        other_vert = *it2;
+        if ((this_vert.boundary == other_vert.boundary)&&(this_vert.e == other_vert.e)){
+          found = true;
+          break;
+        }
+      }
+      // if flag is still false, add the vertex
+      if (!found){
+        mesh_ents.push_back(this_vert);
+        printf("Vertex %d has been added \n", pumi_ment_getID(this_vert.e));
       }
     }
   }
 }
 
 
+// Function returns which boundaries a certain mesh entity is on
+void get_bound_num(pMeshEnt ment, std::vector<boundary_struct> &mesh_ents, std::vector<int> &list){
+  for(std::vector<boundary_struct>::iterator it1 = mesh_ents.begin() ; it1!=mesh_ents.end(); ++it1){
+    boundary_struct this_element = *it1;
+    if (this_element.e == ment){
+      list.push_back(this_element.boundary);
+    }
+  }
+}
 
-
-// Function to check which geometric face (boundary) an element is on (zero is none)
-int get_edge_bound_num(pMeshEnt ment, std::vector<std::vector<pMeshEnt>> &mesh_ents){
+/*
+int get_bound_num(pMeshEnt ment, std::vector<std::vector<pMeshEnt>> &mesh_ents){
   // do a nested iteration to check if the entity is on a boundary or not
   int boundary_counter = 0;
   for(std::vector<std::vector<pMeshEnt>>::iterator it1 = mesh_ents.begin() ; it1!=mesh_ents.end(); ++it1){
@@ -130,7 +160,7 @@ int get_edge_bound_num(pMeshEnt ment, std::vector<std::vector<pMeshEnt>> &mesh_e
   }
   return 0;
 }
-
+*/
 
 // In this function, pass a mesh entity (face) and get the area of that face
 double get_face_area(pMeshEnt face){
@@ -225,19 +255,19 @@ double get_face_area(pMeshEnt face){
 
 /* backup
 void get_all_boundary_edges(pGeom &g,pMesh &mesh, std::vector<std::vector<pMeshEnt>> &mesh_ents){
-  //printf("getting boundary elements \n");
-  // Iterate over all the geometric edges
-  // put mesh entities classified on those edges into the container
-  for (pGeomIter it = g->begin(1); it!=g->end(1);++it){
-    //printf("looping in Geometry\n");
-    pGeomEnt ge = *it;
-    std::vector<pMeshEnt> entities_on_this;
-    // get all the reverse classified entites on this
-    pumi_gent_getRevClas(ge, entities_on_this);
-    //printf("got the reverse classification\n");
-    // push the subcontainer into the main container
-    mesh_ents.push_back(entities_on_this);
-    //printf("pushed back the subcontainer\n");
-  }
+//printf("getting boundary elements \n");
+// Iterate over all the geometric edges
+// put mesh entities classified on those edges into the container
+for (pGeomIter it = g->begin(1); it!=g->end(1);++it){
+//printf("looping in Geometry\n");
+pGeomEnt ge = *it;
+std::vector<pMeshEnt> entities_on_this;
+// get all the reverse classified entites on this
+pumi_gent_getRevClas(ge, entities_on_this);
+//printf("got the reverse classification\n");
+// push the subcontainer into the main container
+mesh_ents.push_back(entities_on_this);
+//printf("pushed back the subcontainer\n");
+}
 }
 */

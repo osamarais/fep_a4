@@ -60,19 +60,40 @@ int main(int argc, char** argv)
   }
 
 
+
+
+
+
   // Now the element routines must be run over the mesh elements in a loop while assembling the matrix.
   int element_type = get_element_type(mesh);
   printf("The element type is %d\n", element_type);
-  //check the boundary elements code
-  std::vector<boundary_edge_struct> boundary_edges;
+
+
+
+
+  // Get all the boundary edges
+  std::vector<boundary_struct> boundary_edges;
   get_all_boundary_edges(geom,mesh, boundary_edges);
-  // verify this is not changing
-  for (std::vector<boundary_edge_struct>::iterator it = boundary_edges.begin(); it!= boundary_edges.end(); ++it){
-    //boundary_edge_struct this_edge = *it;
-    //printf("Now it is %d \n", this_edge.boundary);
+  // Print the boundary numbers
+  for (std::vector<boundary_struct>::iterator it = boundary_edges.begin(); it!= boundary_edges.end(); ++it){
+    boundary_struct this_edge = *it;
+    printf("Edge is on face %d \n", this_edge.boundary);
   }
-  std::vector<boundary_vert_struct> boundary_verts;
-  get_all_boundary_nodes(mesh, boundary_verts);
+  // Get boundary number for
+
+
+
+
+
+  std::vector<boundary_struct> boundary_verts;
+  // Get all the boundary vertices
+  get_all_boundary_nodes(mesh, boundary_edges, boundary_verts);
+  // Now print all the boundary nodes
+  for (std::vector<boundary_struct>::iterator it = boundary_verts.begin(); it!= boundary_verts.end(); ++it){
+    boundary_struct this_vert = *it;
+    printf("Vertex %d is on %d \n", pumi_ment_getID(this_vert.e), this_vert.boundary);
+  }
+
 /*
   // Get some specific element in the mesh and check if it is on the boundary of not
   printf("checking if some entity is on the boundary\n");
