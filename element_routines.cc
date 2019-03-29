@@ -62,12 +62,11 @@ int get_element_type(pMesh mesh){
 
 
 // Get all the mesh edges classified on ALL geometric boundaries
-// pass std::vector<boundary_struct> to the function to get it filled out
+
 struct boundary_struct{
   int boundary;
   pMeshEnt e;
 };
-
 
 void get_all_boundary_edges(pGeom &g,pMesh &mesh, std::vector<boundary_struct> &mesh_ents){
   // Iterate over all the geometric edges
@@ -89,7 +88,8 @@ void get_all_boundary_edges(pGeom &g,pMesh &mesh, std::vector<boundary_struct> &
 }
 
 
-// get a list of all the vertices on boundaries
+// Get a list of all the vertices on boundaries
+
 void get_all_boundary_nodes(pMesh &mesh, std::vector<boundary_struct> &boundary_edges, std::vector<boundary_struct> &mesh_ents){
   // Get the adjacent vertices of all the edges.
   // avoid duplication by checking the list and tallying against e and boundary both
@@ -136,6 +136,7 @@ void get_all_boundary_nodes(pMesh &mesh, std::vector<boundary_struct> &boundary_
 
 
 // Function returns which boundaries a certain mesh entity is on
+
 void get_bound_num(pMeshEnt ment, std::vector<boundary_struct> &mesh_ents, std::vector<int> &list){
   for(std::vector<boundary_struct>::iterator it1 = mesh_ents.begin() ; it1!=mesh_ents.end(); ++it1){
     boundary_struct this_element = *it1;
@@ -145,24 +146,9 @@ void get_bound_num(pMeshEnt ment, std::vector<boundary_struct> &mesh_ents, std::
   }
 }
 
-/*
-int get_bound_num(pMeshEnt ment, std::vector<std::vector<pMeshEnt>> &mesh_ents){
-  // do a nested iteration to check if the entity is on a boundary or not
-  int boundary_counter = 0;
-  for(std::vector<std::vector<pMeshEnt>>::iterator it1 = mesh_ents.begin() ; it1!=mesh_ents.end(); ++it1){
-    boundary_counter++;
-    std::vector<pMeshEnt> this_group = *it1;
-    for(std::vector<pMeshEnt>::iterator it2 = this_group.begin() ; it2!=this_group.end(); ++it2){
-      if(*it2 == ment){
-        return boundary_counter;
-      }
-    }
-  }
-  return 0;
-}
-*/
 
 // In this function, pass a mesh entity (face) and get the area of that face
+
 double get_face_area(pMeshEnt face){
   // Get all the adjacent vertices
   Adjacent vertices;
@@ -203,7 +189,6 @@ double get_face_area(pMeshEnt face){
 // Over here we must check if we have already done the reordering or not so that we may use the appropriate numbering from the mesh
 // Another way is to push all new element matrices into a std::vector type container (https://www.geeksforgeeks.org/vector-insert-function-in-c-stl/)
 // and then sort them using some numbering. (https://www.geeksforgeeks.org/sorting-a-vector-in-c/)
-
 
 // Write element routines here to get the coefficients of the elemental matrices.
 

@@ -93,44 +93,16 @@ int main(int argc, char** argv)
     boundary_struct this_vert = *it;
     printf("Vertex %d is on %d \n", pumi_ment_getID(this_vert.e), this_vert.boundary);
   }
-
-std::vector<int> list;
-pMeshEnt ment = pumi_mesh_findEnt(6);
-get_bound_num(ment, boundary_verts, list);
-
-
-
-/*
-  // Get some specific element in the mesh and check if it is on the boundary of not
-  printf("checking if some entity is on the boundary\n");
-  int face_number = 0;
-  pMeshEnt face_tocheck = pumi_mesh_findEnt(mesh,2,face_number);
-  // get the adjacent edges of the face
-  Adjacent adjacent;
-  int num_adj = pumi_ment_getAdjacent(face_tocheck,1,adjacent);
-  for (int i = 0;i<num_adj;i++){
-    int boundary_number = get_edge_bound_num(adjacent[i],all_on_boundary);
-    if(boundary_number){
-      printf("Is on boundary %d\n", boundary_number);
-      break;
-    }
-    else if(i == num_adj-1){
-      printf("Is not on boundary \n");
-    }
+  // Try to find which boundary something is on
+  std::vector<int> list;
+  int tofind = 0;
+  pMeshEnt ment = pumi_mesh_findEnt(mesh,0,tofind);
+  get_bound_num(ment, boundary_verts, list);
+  for (int i = 0; i< list.size(); i++){
+    printf("The vertex %d is on %d\n",tofind,list[i]);
   }
 
-  // Check if the get face area routine is working
-  double myarea = get_face_area(face_tocheck);
-  printf("The area is %f \n", myarea);
-  pMeshEnt e;
-  double totalarea = 0;
-  pMeshIter it = mesh->begin(2);
-  while ((e = mesh->iterate(it))){
-    totalarea = totalarea + get_face_area(e);
-  }
-  mesh->end(it);
-  printf("Total area is %f \n", totalarea);
-*/
+
 
 
 
