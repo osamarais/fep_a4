@@ -1,5 +1,9 @@
 // This file contains all the functions for the element routines
 
+// Header
+std::pair<bool,double> essential_BC(int boundary_number);
+std::pair<double,double> natural_BC(int boundary_number);
+
 // Minimum requirements are 3 sided and 4 sided Linear and Quaratic Elements
 
 // The type of elements in the mesh must be identified. Functions for that are placed here
@@ -13,7 +17,7 @@ Element enumeration is as follows:
 
 */
 
-int get_element_type(pMesh mesh){
+int get_element_type(pMesh mesh, pMeshEnt e){
   int element_type = 0;
   int edgenodes = 0;
   int numberofedges = 0;
@@ -22,14 +26,8 @@ int get_element_type(pMesh mesh){
   edgenodes = pumi_shape_getNumNode(myshape, 1);
   // get number of nodes on the faces
   // implement this later if needed
-  // get any random mesh entity and check the nmber of adjacent edges to get the shape of the element
-  pMeshEnt e;
-  pMeshIter it = mesh->begin(2);
-  while ((e = mesh->iterate(it))){
-    numberofedges = pumi_ment_getNumAdj(e,1);
-    break;
-  }
-  mesh->end(it);
+  // check the nmber of adjacent edges to get the shape of the element
+  numberofedges = pumi_ment_getNumAdj(e,1);
   // Now use the data about the number of edge nodes etc. to get the element type
   if ((0 == edgenodes) && (3 == numberofedges)){
     element_type = 1;
@@ -183,6 +181,54 @@ double get_face_area(pMeshEnt face){
 
 
 
+// The contribution calculator for a region
+// Needs:
+// Outputs: a vecor of contributions
+
+// Algorithm:
+// 1) get the type of the element in order to determine the shape function to be implemented
+// 2) get the adjacent vertices edges in order to get the proper nodes to contribute to
+// 3) Start getting the contributions
+// 4) Do a mapping, calculate the Jacobian.
+// 
+
+
+
+
+// The contribution calculator for Edges
+
+
+
+// The essential BC enforcer
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
 // Function to get the stiffness matrix contributions of a triangular element
 // The contributions will be to the vertices
 // Therefore loop over the edges only
@@ -192,14 +238,69 @@ double get_face_area(pMeshEnt face){
 // The boundary conditions (this is called as a function inside the function)
 // return a contribution structure
 struct  contribution{
-  int id;
+  int oldid;
+  int newid;
   double coeff;
   double known;
 };
 
-contribution linear_tet(pMesh mesh, std::vector<boundary_struct> &boundary_verts, std::vector<boundary_struct> &boundary_edges){
+
+contribution vertex_node_subassembler(pMesh mesh, pMeshEnt e, std::vector<boundary_struct> &boundary_verts, std::vector<boundary_struct> &boundary_edges, pNumbering node_num){
+  // Needs: boundary lists (verties and edges), mesh entity (node), mesh
+  // Returns: a contribution structure.
+  contribution nodecontribution;
+  nodecontribution.oldid = pumi_ment_getID(e);
+  nodecontribution.newid = pumi_node_getNumber(node_num, e, 0, 0);
+  // First check if a node is on a boundary.
+  std::vector<int> list;
+  get_bound_num(e, boundary_verts, list);
+  // Then check if an essential boundary condition has been enforced on the node at any boundary
+  for (int i = 0; i < list.size(); i++){
+    std::pair<bool,double> BC;
+    // Get BC
+    BC = essential_BC(list[i]);
+    if (BC.first){
+      nodecontribution.coeff = 1;
+      nodecontribution.known = BC.second;
+      // If so, enforce it and exit.
+      return nodecontribution;
+    }
+  }
+
+  // else, check the adjacent edges, and loop over them.
+  Adjacent adjacent;
+  int num_adj = pumi_ment_getAdjacent(e, 1, adjacent);
+  for (int i = 0; i < adjacent.size(); i++){
+    get_bound_num(adjacent[i], boundary_edges, list);
+    std::pair<double,double> BC;
+    if (list.size() > 0){
+      BC = natural_BC(list[0]);
+      // Get the contribution for the edge here!!
+    }
+
+  }
+
+
+  // else, check the adjacent edges, and loop over them.
+  // check if any of them are on a boundary.
+  // if any of them are on a boundary, get the contribution of that boundary.
+
+  // Now get the adjacent regions.
+  // Loop over the adjacent regions.
+  // Check the type of the region.
+  // Invoke the appropriate type of area contributor to get it
+  // Assemble all the contributions along with the renumbered number of the node.
+}
+
+
+
+
+contribution linear_tet(pMesh mesh, pMeshEnt e){
+  // Needs: a face element, mesh
+  // Returns: a contribution structure (id stuff ignored)
+
   contribution tetcontribution;
-  // Check if this node is on a boundary where an essential bounary condition has been specified
+  // Check if this node is on a boundary where an essential boundary condition has been specified
   // If on an essential boundary condition, simple enforce it.
   //
   // else
@@ -209,10 +310,11 @@ contribution linear_tet(pMesh mesh, std::vector<boundary_struct> &boundary_verts
 }
 
 
-
-
-
-
+contribution lin_edge_contribuition(pMesh mesh, pMeshEnt, std::pair<double,double> BC){
+  contribution edge_contribution;
+  return edge_contribution;
+}
+*/
 
 
 

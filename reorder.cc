@@ -47,7 +47,7 @@ pMeshEnt getStart(pMesh &mesh, pGeom &g){
 
 
 
-void reorder(pMesh &mesh, pMeshEnt &startingvertex){
+std::pair<pNumbering,pNumbering> reorder(pMesh &mesh, pMeshEnt &startingvertex){
   pShape myshape = pumi_mesh_getShape(mesh);
   pNumbering mynum =  pumi_numbering_create(mesh,"mynewnumbering",myshape);
   //pMeshTag facenum =  pumi_mesh_createIntTag(mesh,"myfacenumbering",1);
@@ -186,13 +186,19 @@ void reorder(pMesh &mesh, pMeshEnt &startingvertex){
     }
     myq.pop_front();
   }
+  std::pair<pNumbering,pNumbering> toreturn;
+  toreturn.first = mynum;
+  toreturn.first = facenum;
+  return toreturn;
 }
 
 
 
-void reorder_mesh(pMesh mesh, pGeom geom){
+std::pair<pNumbering,pNumbering> reorder_mesh(pMesh mesh, pGeom geom){
   pMeshEnt startingvertex = getStart(mesh,geom);
-  reorder(mesh,startingvertex);
+  std::pair<pNumbering,pNumbering> numberings;
+  numberings = reorder(mesh,startingvertex);
+  return numberings;
 }
 
 
