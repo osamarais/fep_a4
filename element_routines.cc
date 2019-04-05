@@ -285,7 +285,7 @@ void const_str_tri(pMeshEnt e, std::vector<contribution> &region_contributions){
   J[1][0] = coord2[0] - coord3[0];
   J[1][1] = coord2[1] - coord3[1];
   // Multiply and get jj
-  double JJ[2][2];
+  double JJ[2][2] = {0};
   for (int i = 0; i < 2; i++){
     for (int j = 0; j < 2; j++){
       for (int k = 0; k < 2; k++){
@@ -296,20 +296,21 @@ void const_str_tri(pMeshEnt e, std::vector<contribution> &region_contributions){
   // Create Del Matrices and Multiply
   double del[3][2] = {{1,0},{0,1},{-1,-1}};
   double delT[2][3] = {{1,0,-1},{0,1,-1}};
-  double delJJ[3][2];
+  double delJJ[3][2] = {0};
   for (int i = 0; i < 3; i++){
     for (int j = 0; j < 2; j++){
       for (int k = 0; k < 2; k++){
-        delJJ[i][j] = del[i][k]*JJ[k][j];
+        delJJ[i][j] += del[i][k]*JJ[k][j];
+        printf("JJ i %d j %d    %f \n",i,j,delJJ[i][j]);
       }
     }
   }
   // Create complete matrix, and also do integral (divide by 2)
-  double delJJdelT[3][3];
+  double delJJdelT[3][3] = {0};
   for (int i = 0; i < 3; i++){
     for (int j = 0; j < 3; j++){
       for (int k = 0; k < 2; k++){
-        delJJdelT[i][j] = delJJ[i][k]*delT[k][j]/2;
+        delJJdelT[i][j] += delJJ[i][k]*delT[k][j]/2;
       }
     }
   }
@@ -322,8 +323,8 @@ void const_str_tri(pMeshEnt e, std::vector<contribution> &region_contributions){
       c.row = pumi_ment_getID(adjacent[i]);
       c.column = pumi_ment_getID(adjacent[j]);
       region_contributions.push_back(c);
-      printf("Row %f \n", c.row);
-      printf("Column%f \n", c.column);
+      printf("Row %d \n", c.row);
+      printf("Column%d \n", c.column);
       printf("contribution coefficient %f \n", c.coefficient);
     }
   }
