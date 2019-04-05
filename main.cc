@@ -102,6 +102,31 @@ int main(int argc, char** argv)
   }
 
 
+  // Check is redordering is required
+  it = mesh->begin(2);
+  while ((e = mesh->iterate(it))){
+    Adjacent adjacent;
+    pumi_ment_getAdjacent(e,0,adjacent);
+    if(reorder_verts(adjacent)){
+      printf("Mesh needs reordering \n");
+      return 0;
+    }
+  }
+  mesh->end(it);
+  printf(" Mesh vertices do not need reordering\n");
+
+  // Now we are ready generate the contributions
+  std::vector<contribution> all_contributions;
+  // Generate the region contributions
+  it = mesh->begin(2);
+  while ((e = mesh->iterate(it))){
+    const_str_tri(e, all_contributions);
+  }
+  mesh->end(it);
+  //printf("Generated region contributions\n");
+
+
+
 
 
 

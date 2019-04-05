@@ -4,6 +4,23 @@
 std::pair<bool,double> essential_BC(int boundary_number);
 std::pair<double,double> natural_BC(int boundary_number);
 
+
+struct contribution{
+  int row;
+  int column;
+  double coefficient;
+  double known;
+};
+
+struct boundary_struct{
+  int boundary;
+  pMeshEnt e;
+};
+
+
+
+void const_str_tri(pMeshEnt e);
+
 // Minimum requirements are 3 sided and 4 sided Linear and Quaratic Elements
 
 // The type of elements in the mesh must be identified. Functions for that are placed here
@@ -46,7 +63,7 @@ int get_element_type(pMesh mesh, pMeshEnt e){
   }
 
   if (0 == element_type){
-    //printf("Unidentified Element!!!\n");
+    printf("Unidentified Element!!!\n");
   }
   //printf("The element_type type identified is %d \n", element_type);
   return element_type;
@@ -61,10 +78,6 @@ int get_element_type(pMesh mesh, pMeshEnt e){
 
 // Get all the mesh edges classified on ALL geometric boundaries
 
-struct boundary_struct{
-  int boundary;
-  pMeshEnt e;
-};
 
 void get_all_boundary_edges(pGeom &g,pMesh &mesh, std::vector<boundary_struct> &mesh_ents){
   // Iterate over all the geometric edges
@@ -181,41 +194,140 @@ double get_face_area(pMeshEnt face){
 
 
 
-// The contribution calculator for a region
-// Needs:
-// Outputs: a vecor of contributions
-
-// Algorithm:
-// 1) get the type of the element in order to determine the shape function to be implemented
-// 2) get the adjacent vertices edges in order to get the proper nodes to contribute to
-// 3) Start getting the contributions
-// 4) Do a mapping, calculate the Jacobian.
-// 
 
 
 
+// Reorder Element to make it CCW (swapping Algorithm)
+// Input: a vector of vertices
+// Output: a vector of vertices
+bool reorder_verts(Adjacent &adjacent){
+  // keep looping till this counter reaches the size of the vector container
+  std::vector<pMeshEnt> vertices;
+  for (int i = 0; i < adjacent.size(); i++){
+    vertices.push_back(adjacent[i]);
+  }
+  //printf("we are here \n");
+  for (int i = 0; i < (vertices.size()-2) ; i++){
+    // Get the coordinates
+    double coord1[3];
+    double coord2[3];
+    double coord3[3];
+    pumi_node_getCoord(vertices[0], 0, coord1);
+    pumi_node_getCoord(vertices[i+1], 0, coord2);
+    pumi_node_getCoord(vertices[i+2], 0, coord3);
+    //printf("%d \n", i);
+    /*
+    printf("x vertex 1 %f\n", coord1[0]);
+    printf("y vertex 1 %f\n", coord1[1]);
+    printf("x vertex 2 %f\n", coord2[0]);
+    printf("y vertex 2 %f\n", coord2[1]);
+    printf("x vertex 3 %f\n", coord3[0]);
+    printf("y vertex 3 %f\n", coord3[1]);
+    */
+    double shoelace = coord1[0]*coord2[1] + coord2[0]*coord3[1] + coord3[0]*coord1[1] - coord1[1]*coord2[0] - coord2[1]*coord3[0] - coord3[1]*coord1[0];
+    //printf("shoelace is %f\n", shoelace);
+    if (shoelace<0){
+      // swap the elements and restart the counter
+      printf("SWAPPED!!! \n");
+      std::swap(vertices[i+1],vertices[i+2]);
+      i = 0;
+      return true;
+    }
+    // Keep checking the shoelace against three every times.
+    // Upon failure, swap the last two and then start over i.e. i = 0
 
-// The contribution calculator for Edges
-
-
-
-// The essential BC enforcer
-
-
+  }
+  return false;
+}
 
 
 
 
 
 
+contribution region_routine(pMesh mesh, pMeshEnt e, std::vector<contribution> &region_contributions){
+  //contribution region_contribution;
+  switch (get_element_type(mesh,e)) {
+    case 0:
+    printf("      Unrecognised element!!!!!!!!!!!\n");
+    case 1:
+    printf("Constant Strain Triangle Element\n");
+    //const_str_tri(e, region_contributions);
+    default:
+    printf("      Unknown Error in Element routine!!!!!!!!!!\n");
+  }
+}
 
 
 
-
-
-
-
-
+void const_str_tri(pMeshEnt e, std::vector<contribution> &region_contributions){
+  int id = pumi_ment_getID(e);
+  printf("\n\n\n\nRegion %d:\n\n",id);
+  // Get global coordinates
+  Adjacent adjacent;
+  pumi_ment_getAdjacent(e,0,adjacent);
+  double coord1[3];
+  double coord2[3];
+  double coord3[3];
+  pumi_node_getCoord(adjacent[0], 0, coord1);
+  pumi_node_getCoord(adjacent[1], 0, coord2);
+  pumi_node_getCoord(adjacent[2], 0, coord3);
+  printf("x vertex 1 %f\n", coord1[0]);
+  printf("y vertex 1 %f\n", coord1[1]);
+  printf("x vertex 2 %f\n", coord2[0]);
+  printf("y vertex 2 %f\n", coord2[1]);
+  printf("x vertex 3 %f\n", coord3[0]);
+  printf("y vertex 3 %f\n\n", coord3[1]);
+  // Generate Jacobian
+  double J[2][2];
+  J[0][0] = coord1[0] - coord3[0];
+  J[0][1] = coord1[1] - coord3[1];
+  J[1][0] = coord2[0] - coord3[0];
+  J[1][1] = coord2[1] - coord3[1];
+  // Multiply and get jj
+  double JJ[2][2];
+  for (int i = 0; i < 2; i++){
+    for (int j = 0; j < 2; j++){
+      for (int k = 0; k < 2; k++){
+        JJ[i][j] += J[i][k]*J[k][j];
+      }
+    }
+  }
+  // Create Del Matrices and Multiply
+  double del[3][2] = {{1,0},{0,1},{-1,-1}};
+  double delT[2][3] = {{1,0,-1},{0,1,-1}};
+  double delJJ[3][2];
+  for (int i = 0; i < 3; i++){
+    for (int j = 0; j < 2; j++){
+      for (int k = 0; k < 2; k++){
+        delJJ[i][j] = del[i][k]*JJ[k][j];
+      }
+    }
+  }
+  // Create complete matrix, and also do integral (divide by 2)
+  double delJJdelT[3][3];
+  for (int i = 0; i < 3; i++){
+    for (int j = 0; j < 3; j++){
+      for (int k = 0; k < 2; k++){
+        delJJdelT[i][j] = delJJ[i][k]*delT[k][j]/2;
+      }
+    }
+  }
+  // Now simply assemble the contribution and push it back
+  for (int i = 0; i < 3; i++){
+    for (int j = 0; j < 3; j++){
+      contribution c;
+      c.coefficient = delJJdelT[i][j];
+      c.known = 0;
+      c.row = pumi_ment_getID(adjacent[i]);
+      c.column = pumi_ment_getID(adjacent[j]);
+      region_contributions.push_back(c);
+      printf("Row %f \n", c.row);
+      printf("Column%f \n", c.column);
+      printf("contribution coefficient %f \n", c.coefficient);
+    }
+  }
+}
 
 
 
@@ -238,81 +350,81 @@ double get_face_area(pMeshEnt face){
 // The boundary conditions (this is called as a function inside the function)
 // return a contribution structure
 struct  contribution{
-  int oldid;
-  int newid;
-  double coeff;
-  double known;
+int oldid;
+int newid;
+double coeff;
+double known;
 };
 
 
 contribution vertex_node_subassembler(pMesh mesh, pMeshEnt e, std::vector<boundary_struct> &boundary_verts, std::vector<boundary_struct> &boundary_edges, pNumbering node_num){
-  // Needs: boundary lists (verties and edges), mesh entity (node), mesh
-  // Returns: a contribution structure.
-  contribution nodecontribution;
-  nodecontribution.oldid = pumi_ment_getID(e);
-  nodecontribution.newid = pumi_node_getNumber(node_num, e, 0, 0);
-  // First check if a node is on a boundary.
-  std::vector<int> list;
-  get_bound_num(e, boundary_verts, list);
-  // Then check if an essential boundary condition has been enforced on the node at any boundary
-  for (int i = 0; i < list.size(); i++){
-    std::pair<bool,double> BC;
-    // Get BC
-    BC = essential_BC(list[i]);
-    if (BC.first){
-      nodecontribution.coeff = 1;
-      nodecontribution.known = BC.second;
-      // If so, enforce it and exit.
-      return nodecontribution;
-    }
-  }
+// Needs: boundary lists (vertices and edges), mesh entity (node), mesh
+// Returns: a contribution structure.
+contribution nodecontribution;
+nodecontribution.oldid = pumi_ment_getID(e);
+nodecontribution.newid = pumi_node_getNumber(node_num, e, 0, 0);
+// First check if a node is on a boundary.
+std::vector<int> list;
+get_bound_num(e, boundary_verts, list);
+// Then check if an essential boundary condition has been enforced on the node at any boundary
+for (int i = 0; i < list.size(); i++){
+std::pair<bool,double> BC;
+// Get BC
+BC = essential_BC(list[i]);
+if (BC.first){
+nodecontribution.coeff = 1;
+nodecontribution.known = BC.second;
+// If so, enforce it and exit.
+return nodecontribution;
+}
+}
 
-  // else, check the adjacent edges, and loop over them.
-  Adjacent adjacent;
-  int num_adj = pumi_ment_getAdjacent(e, 1, adjacent);
-  for (int i = 0; i < adjacent.size(); i++){
-    get_bound_num(adjacent[i], boundary_edges, list);
-    std::pair<double,double> BC;
-    if (list.size() > 0){
-      BC = natural_BC(list[0]);
-      // Get the contribution for the edge here!!
-    }
+// else, check the adjacent edges, and loop over them.
+Adjacent adjacent;
+int num_adj = pumi_ment_getAdjacent(e, 1, adjacent);
+for (int i = 0; i < adjacent.size(); i++){
+get_bound_num(adjacent[i], boundary_edges, list);
+std::pair<double,double> BC;
+if (list.size() > 0){
+BC = natural_BC(list[0]);
+// Get the contribution for the edge here!!
+}
 
-  }
+}
 
 
-  // else, check the adjacent edges, and loop over them.
-  // check if any of them are on a boundary.
-  // if any of them are on a boundary, get the contribution of that boundary.
+// else, check the adjacent edges, and loop over them.
+// check if any of them are on a boundary.
+// if any of them are on a boundary, get the contribution of that boundary.
 
-  // Now get the adjacent regions.
-  // Loop over the adjacent regions.
-  // Check the type of the region.
-  // Invoke the appropriate type of area contributor to get it
-  // Assemble all the contributions along with the renumbered number of the node.
+// Now get the adjacent regions.
+// Loop over the adjacent regions.
+// Check the type of the region.
+// Invoke the appropriate type of area contributor to get it
+// Assemble all the contributions along with the renumbered number of the node.
 }
 
 
 
 
 contribution linear_tet(pMesh mesh, pMeshEnt e){
-  // Needs: a face element, mesh
-  // Returns: a contribution structure (id stuff ignored)
+// Needs: a face element, mesh
+// Returns: a contribution structure (id stuff ignored)
 
-  contribution tetcontribution;
-  // Check if this node is on a boundary where an essential boundary condition has been specified
-  // If on an essential boundary condition, simple enforce it.
-  //
-  // else
-  // get adjacent regions, loop over them, and get their contributions
-  //
-  return tetcontribution;
+contribution tetcontribution;
+// Check if this node is on a boundary where an essential boundary condition has been specified
+// If on an essential boundary condition, simple enforce it.
+//
+// else
+// get adjacent regions, loop over them, and get their contributions
+//
+return tetcontribution;
 }
 
 
 contribution lin_edge_contribuition(pMesh mesh, pMeshEnt, std::pair<double,double> BC){
-  contribution edge_contribution;
-  return edge_contribution;
+contribution edge_contribution;
+return edge_contribution;
 }
 */
 
