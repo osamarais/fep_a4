@@ -53,7 +53,7 @@ int main(int argc, char** argv)
 
 
 
-/*
+
 
 
   // Check the element type routine, if it is working
@@ -125,7 +125,7 @@ int main(int argc, char** argv)
   }
   mesh->end(it);
   //printf("Generated region contributions\n");
-*/
+
 
 
 
