@@ -427,7 +427,8 @@ void lin_str_tri(pMeshEnt e, std::vector<contribution> &region_contributions){
   double tin[3] = {1/6,2/3,1/6};
   double Win[3] = {1/3,1/3,1/3};
 
-  // create analytical del matrix (split into the three components constant, s coefficient, and t coefficient)
+  // create analytical del matrix (split into the three components
+  //         constant, s coefficient, and t coefficient)
   double del_analytical[6][2][3] = { {{-3,4,4},{-3,4,4}},
                           {{-1,4,0},{0,0,0}},
                           {{0,0,0},{-1,0,4}},
@@ -439,7 +440,7 @@ void lin_str_tri(pMeshEnt e, std::vector<contribution> &region_contributions){
   for (int i = 0; i < 6; i++){
     for (int j = 0; j < 2; j++){
       for (int k = 0; k < 3; k++){
-        // Weight will not be used since it is not distributive over the matrix operations
+        // Weight not be used since it is not distributive over the matrices
         del[i][j] += del_analytical[i][j][0] + del_analytical[i][j][1]*Sin[k] + del_analytical[i][j][2]*tin[k];
       }
     }
@@ -495,7 +496,8 @@ void lin_str_tri(pMeshEnt e, std::vector<contribution> &region_contributions){
       }
     }
   }
-  // Create complete matrix, and also do integral (divide by 2) and use weight (taking advantage of the common weight for all of them!!!!)
+  // Create complete matrix, and also do integral (divide by 2) and use weight
+  //  (taking advantage of the common weight for all of them!!!!)
   // Also multiply by the Jacobian
   double delJJdelT[6][6] = {0};
   for (int i = 0; i < 6; i++){
@@ -531,10 +533,9 @@ void lin_str_tri(pMeshEnt e, std::vector<contribution> &region_contributions){
       printf("Row %d \n", c.row);
       printf("Column%d \n", c.column);
       printf("contribution coefficient %f \n", c.coefficient);
+      // Verify This !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     }
   }
-
-  // Quadrature is constant for the whole thing?
 }
 
 

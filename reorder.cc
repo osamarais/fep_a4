@@ -47,7 +47,7 @@ pMeshEnt getStart(pMesh &mesh, pGeom &g){
 
 
 
-std::pair<pNumbering,pNumbering> reorder(pMesh &mesh, pMeshEnt &startingvertex){
+pNumbering reorder(pMesh &mesh, pMeshEnt &startingvertex){
   pShape myshape = pumi_mesh_getShape(mesh);
   pNumbering mynum =  pumi_numbering_create(mesh,"mynewnumbering",myshape);
   //pMeshTag facenum =  pumi_mesh_createIntTag(mesh,"myfacenumbering",1);
@@ -58,7 +58,7 @@ std::pair<pNumbering,pNumbering> reorder(pMesh &mesh, pMeshEnt &startingvertex){
   int labelnode = 1;
   labelnode += (pumi_shape_getNumNode(myshape, 0) * pumi_mesh_getNumEnt(mesh,0));
   labelnode += (pumi_shape_getNumNode(myshape, 1) * pumi_mesh_getNumEnt(mesh,1));
-  //printf("The total number of nodes is %d\n", labelnode-1);
+  printf("The total number of nodes is %d\n", labelnode-1);
   // Now get the total number of faces since we will be labelling them also
   int labelface = pumi_mesh_getNumEnt(mesh,2) + 1;
   //printf("The total number of faces is %d\n", labelface-1);
@@ -185,20 +185,19 @@ std::pair<pNumbering,pNumbering> reorder(pMesh &mesh, pMeshEnt &startingvertex){
       }
     }
     myq.pop_front();
+    //printf("Total labelled nodes:  %d\n", pumi_numbering_getNumNode(mynum));
   }
-  std::pair<pNumbering,pNumbering> toreturn;
-  toreturn.first = mynum;
-  toreturn.first = facenum;
-  return toreturn;
+  printf("Checking numbering  %d\n", pumi_numbering_getNumNode(mynum));
+  return mynum;
 }
 
 
 
-std::pair<pNumbering,pNumbering> reorder_mesh(pMesh mesh, pGeom geom){
+pNumbering reorder_mesh(pMesh mesh, pGeom geom){
   pMeshEnt startingvertex = getStart(mesh,geom);
-  std::pair<pNumbering,pNumbering> numberings;
-  numberings = reorder(mesh,startingvertex);
-  return numberings;
+  pNumbering numbering;
+  numbering = reorder(mesh,startingvertex);
+  return numbering;
 }
 
 

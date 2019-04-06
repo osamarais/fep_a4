@@ -31,10 +31,10 @@ int main(int argc, char** argv)
   pMesh mesh = pumi_mesh_load(geom,argv[2],1);
 
   // Convert some mesh to Lagrange
-  if(!strcmp (argv[1], "reorder_b.dmg")) {
+  //if(!strcmp (argv[1], "reorder_b.dmg")) {
     pumi_mesh_setShape(mesh,pumi_shape_getLagrange(2));
     pumi_mesh_print(mesh);
-  }
+  //}
 
 
 
@@ -45,15 +45,15 @@ int main(int argc, char** argv)
 
 
   // Now that the mesh files have successfully been loaded, reorder them
-  std::pair<pNumbering,pNumbering> numberings;
-  numberings = reorder_mesh(mesh,geom);
+  pNumbering numbering;
+  numbering = reorder_mesh(mesh,geom);
   cout << "Completed reordering\n";
   pumi_mesh_write(mesh,argv[2],"vtk");
   cout << "Mesh file written to file\n";
 
 
 
-
+/*
 
 
   // Check the element type routine, if it is working
@@ -115,6 +115,7 @@ int main(int argc, char** argv)
   mesh->end(it);
   printf(" Mesh vertices do not need reordering\n");
 
+
   // Now we are ready generate the contributions
   std::vector<contribution> all_contributions;
   // Generate the region contributions
@@ -124,7 +125,7 @@ int main(int argc, char** argv)
   }
   mesh->end(it);
   //printf("Generated region contributions\n");
-
+*/
 
 
 
