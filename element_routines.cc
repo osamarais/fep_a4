@@ -250,11 +250,14 @@ contribution region_routine(pMesh mesh, pMeshEnt e, std::vector<contribution> &r
   switch (get_element_type(mesh,e)) {
     case 0:
     printf("      Unrecognised element!!!!!!!!!!!\n");
+    break;
     case 1:
     printf("Constant Strain Triangle Element\n");
     //const_str_tri(e, region_contributions);
+    break;
     default:
     printf("      Unknown Error in Element routine!!!!!!!!!!\n");
+    break;
   }
 }
 
@@ -328,6 +331,210 @@ void const_str_tri(pMeshEnt e, std::vector<contribution> &region_contributions){
       printf("contribution coefficient %f \n", c.coefficient);
     }
   }
+}
+
+
+
+
+void lin_str_tri(pMeshEnt e, std::vector<contribution> &region_contributions){
+  // Get coordiantes of vertices
+  int id = pumi_ment_getID(e);
+  printf("\n\n\n\nRegion %d:\n\n",id);
+  Adjacent adjacentv;
+  pumi_ment_getAdjacent(e,0,adjacentv);
+  double coord1[3] = {0};
+  double coord2[3] = {0};
+  double coord3[3] = {0};
+  pumi_node_getCoord(adjacentv[0], 0, coord1);
+  pumi_node_getCoord(adjacentv[1], 0, coord2);
+  pumi_node_getCoord(adjacentv[2], 0, coord3);
+  printf("x vertex 1 %f\n", coord1[0]);
+  printf("y vertex 1 %f\n", coord1[1]);
+  printf("x vertex 2 %f\n", coord2[0]);
+  printf("y vertex 2 %f\n", coord2[1]);
+  printf("x vertex 3 %f\n", coord3[0]);
+  printf("y vertex 3 %f\n", coord3[1]);
+  // Get coordinates of the edge nodes in proper ordering
+  double coord4[3] = {0};
+  double coord5[3] = {0};
+  double coord6[3] = {0};
+  // loop over the vertices
+  // get the shared edge
+  // get the node on the shared edge
+  // get its vertices and put it in the coord double
+  std::vector<pMeshEnt> sharededges;
+  for (int i = 0; i < adjacentv.size(); i++){
+    Adjacent adjacente1;
+    Adjacent adjacente2;
+    pumi_ment_getAdjacent(adjacentv[i],1,adjacente1);
+    if (i < adjacentv.size()-1){
+      pumi_ment_getAdjacent(adjacentv[i+1],1,adjacente2);
+    }
+    else{
+      pumi_ment_getAdjacent(adjacentv[0],1,adjacente2);
+    }
+    //printf("Got adjacents %d\n", i);
+    // Got the adjacent edges, now get the shared one
+    pMeshEnt sharededge;
+    for (int j = 0; j < adjacente1.size(); j++){
+      for (int k = 0; k < adjacente2.size(); k++){
+        //printf("Comparing adjacents  %d  %d \n", j,k);
+        if (adjacente1[j]==adjacente2[k]){
+          //printf("                       Found a match! \n");
+          sharededge = adjacente1[j];
+          sharededges.push_back(sharededge);
+        }
+        else {
+          //printf("Failed to match \n");
+        }
+      }
+    }
+    // Now get the node on this shared edge
+    // put the coords in the appropriate double
+    switch (i) {
+      case 0:
+      pumi_node_getCoord(sharededge, 0, coord4);
+      break;
+      case 1:
+      pumi_node_getCoord(sharededge, 0, coord5);
+      break;
+      case 2:
+      pumi_node_getCoord(sharededge, 0, coord6);
+      break;
+      default:
+      printf("Unknown Error!!!!\n");
+    }
+
+
+  }
+  printf("x vertex 4 %f\n", coord4[0]);
+  printf("y vertex 4 %f\n", coord4[1]);
+  printf("x vertex 5 %f\n", coord5[0]);
+  printf("y vertex 5 %f\n", coord5[1]);
+  printf("x vertex 6 %f\n", coord6[0]);
+  printf("y vertex 6 %f\n\n", coord6[1]);
+
+  // Create x and y vectors
+  double xeT[6] = {coord1[0],coord2[0],coord3[0],coord4[0],coord5[0],coord6[0]};
+  double yeT[6] = {coord1[1],coord2[1],coord3[1],coord4[1],coord5[1],coord6[1]};
+  // Create s and t vectors
+  double s[6] = {0,1,0,0.5,0.5,0};
+  double t[6] = {0,0,1,0,0.5,0.5};
+  // Matrix J depends on the quadrature rule;
+  // Matrices del and delT depend on the quadrature rules
+  // Use 3 point triangle quadrature
+  double Sin[3] = {2/3,1/6,1/6};
+  double tin[3] = {1/6,2/3,1/6};
+  double Win[3] = {1/3,1/3,1/3};
+
+  // create analytical del matrix (split into the three components constant, s coefficient, and t coefficient)
+  double del_analytical[6][2][3] = { {{-3,4,4},{-3,4,4}},
+                          {{-1,4,0},{0,0,0}},
+                          {{0,0,0},{-1,0,4}},
+                          {{4,-8,-4},{0,-4,0}},
+                          {{0,0,4},{0,4,0}},
+                          {{0,0,-4},{4,-4,-8}} };
+  // calculate this analytical del matrix using the three point quadrature
+  double del[6][2] = {0};
+  for (int i = 0; i < 6; i++){
+    for (int j = 0; j < 2; j++){
+      for (int k = 0; k < 3; k++){
+        // Weight will not be used since it is not distributive over the matrix operations
+        del[i][j] += del_analytical[i][j][0] + del_analytical[i][j][1]*Sin[k] + del_analytical[i][j][2]*tin[k];
+      }
+    }
+  }
+  // transpose del matrix
+  double delT[2][6] = {0};
+  for (int i = 0; i < 6; i++){
+    for (int j = 0; j < 2; j++){
+      delT[j][i] = del[i][j];
+    }
+  }
+  // Create Jacobian
+  double J[2][2] = {0};
+  for (int i = 0; i < 2; i++){
+    for (int j = 0; j < 2; j++){
+      for (int k = 0; k < 6; k++){
+        double a = 0;
+        double b = 0;
+        if (i == 0){
+          b = del[k][0];
+        }
+        else {
+          b = del[k][1];
+        }
+        if (j == 0){
+          a = xeT[k];
+        }
+        else {
+          a = yeT[k];
+        }
+        J[i][j] += a*b;
+      }
+    }
+  }
+  // Get Jacobian determinant
+  double detJ = J[0][0]*J[1][1]-J[0][1]*J[1][0];
+
+  // Start multiplying the matrices
+  double JJ[2][2] = {0};
+  for (int i = 0; i < 2; i++){
+    for (int j = 0; j < 2; j++){
+      for (int k = 0; k < 2; k++){
+        JJ[i][j] += J[i][k]*J[k][j];
+      }
+    }
+  }
+  double delJJ[6][2] = {0};
+  for (int i = 0; i < 6; i++){
+    for (int j = 0; j < 2; j++){
+      for (int k = 0; k < 2; k++){
+        delJJ[i][j] += del[i][k]*JJ[k][j];
+        //printf("delJJ i %d j %d    %f \n",i,j,delJJ[i][j]);
+      }
+    }
+  }
+  // Create complete matrix, and also do integral (divide by 2) and use weight (taking advantage of the common weight for all of them!!!!)
+  // Also multiply by the Jacobian
+  double delJJdelT[6][6] = {0};
+  for (int i = 0; i < 6; i++){
+    for (int j = 0; j < 6; j++){
+      for (int k = 0; k < 2; k++){
+        delJJdelT[i][j] += delJJ[i][k]*delT[k][j]/2*detJ;
+      }
+    }
+  }
+
+  // Now send out the assembly
+  for (int i = 0; i < 6; i++){
+    for (int j = 0; j < 6; j++){
+      contribution c;
+      c.coefficient = delJJdelT[i][j];
+      c.known = 0;
+      // Need to get the proper IDs of the nodes!!!
+      if (i<3){
+        c.row = pumi_ment_getID(adjacentv[i]);
+      }
+      else{
+        c.row = pumi_ment_getID(sharededges[i-3]);
+      }
+      if (j<3){
+        c.column = pumi_ment_getID(adjacentv[j]);
+      }
+      else{
+        c.column = pumi_ment_getID(sharededges[j-3]);
+      }
+      //c.row = pumi_ment_getID(adjacent[i]);
+      //c.column = pumi_ment_getID(adjacent[j]);
+      region_contributions.push_back(c);
+      printf("Row %d \n", c.row);
+      printf("Column%d \n", c.column);
+      printf("contribution coefficient %f \n", c.coefficient);
+    }
+  }
+
+  // Quadrature is constant for the whole thing?
 }
 
 
