@@ -336,7 +336,7 @@ void const_str_tri(pMeshEnt e, std::vector<contribution> &region_contributions){
 
 
 
-void lin_str_tri(pMeshEnt e, std::vector<contribution> &region_contributions){
+void lin_str_tri(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering numbering){
   // Get coordiantes of vertices
   int id = pumi_ment_getID(e);
   printf("\n\n\n\nRegion %d:\n\n",id);
@@ -522,7 +522,8 @@ void lin_str_tri(pMeshEnt e, std::vector<contribution> &region_contributions){
         c.row = pumi_ment_getID(sharededges[i-3]);
       }
       if (j<3){
-        c.column = pumi_ment_getID(adjacentv[j]);
+        c.column = pumi_node_getNumber (numbering, adjacentv[j]);
+        pumi_node_getNumber (numbering, adjacentv[j]);
       }
       else{
         c.column = pumi_ment_getID(sharededges[j-3]);
