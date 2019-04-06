@@ -516,17 +516,20 @@ void lin_str_tri(pMeshEnt e, std::vector<contribution> &region_contributions, pN
       c.known = 0;
       // Need to get the proper IDs of the nodes!!!
       if (i<3){
-        c.row = pumi_ment_getID(adjacentv[i]);
+        //c.row = pumi_ment_getID(adjacentv[i]);
+        c.row = pumi_node_getNumber (numbering, adjacentv[i]);
       }
       else{
-        c.row = pumi_ment_getID(sharededges[i-3]);
+        //c.row = pumi_ment_getID(sharededges[i-3]);
+        c.row = pumi_node_getNumber (numbering, sharededges[i-3]);
       }
       if (j<3){
         c.column = pumi_node_getNumber (numbering, adjacentv[j]);
-        pumi_node_getNumber (numbering, adjacentv[j]);
+        //pumi_node_getNumber (numbering, adjacentv[j]);
       }
       else{
-        c.column = pumi_ment_getID(sharededges[j-3]);
+        //c.column = pumi_ment_getID(sharededges[j-3]);
+        c.column = pumi_node_getNumber (numbering, sharededges[j-3]);
       }
       //c.row = pumi_ment_getID(adjacent[i]);
       //c.column = pumi_ment_getID(adjacent[j]);
