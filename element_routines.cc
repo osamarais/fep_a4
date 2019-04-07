@@ -477,166 +477,191 @@ void lin_str_tri(pMeshEnt e, std::vector<contribution> &region_contributions, pN
 
     /*
     for (int i = 0; i < 2; i++){
-      printf("delT matrix   ");
-      for (int j = 0; j < 6; j++){
-        printf(" %f ",delT[i][j]);
-      }
-      printf("\n");
-    }
-    */
-
-
-    // Create Jacobian
-    double J[2][2] = {0};
-    for (int i = 0; i < 2; i++){
-      for (int j = 0; j < 2; j++){
-        for (int k = 0; k < 6; k++){
-          double a = 0;
-          double b = 0;
-          if (i == 0){
-            b = del[k][0];
-          }
-          else {
-            b = del[k][1];
-          }
-          if (j == 0){
-            a = xeT[k];
-          }
-          else {
-            a = yeT[k];
-          }
-          J[i][j] += a*b;
-        }
-      }
-    }
-
-
-    for (int i = 0; i < 2; i++){
-      printf("J matrix   ");
-      for (int j = 0; j < 2; j++){
-        printf(" %f ",J[i][j]);
-      }
-      printf("\n");
-    }
-
-
-    // Get Jacobian determinant
-    double detJ = J[0][0]*J[1][1]-J[0][1]*J[1][0];
-
-    // Start multiplying the matrices
-    double JJ[2][2] = {0};
-    for (int i = 0; i < 2; i++){
-      for (int j = 0; j < 2; j++){
-        for (int k = 0; k < 2; k++){
-          JJ[i][j] += J[i][k]*J[k][j];
-        }
-      }
-    }
-
-
-    /*
-    for (int i = 0; i < 2; i++){
-      printf("JJ matrix   ");
-      for (int j = 0; j < 2; j++){
-        printf(" %f ",JJ[i][j]);
-      }
-      printf("\n");
-    }
-    */
-
-
-    double delJJ[6][2] = {0};
-    for (int i = 0; i < 6; i++){
-      for (int j = 0; j < 2; j++){
-        for (int k = 0; k < 2; k++){
-          delJJ[i][j] += del[i][k]*JJ[k][j];
-          //printf("delJJ i %d j %d    %f \n",i,j,delJJ[i][j]);
-        }
-      }
-    }
-
-
-    /*
-    for (int i = 0; i < 6; i++){
-      printf("delJJ matrix   ");
-      for (int j = 0; j < 2; j++){
-        printf(" %f ",delJJ[i][j]);
-      }
-      printf("\n");
-    }
-    */
-
-
-    // Create complete matrix, and also do integral (divide by 2) and use weight
-    //  (taking advantage of the common weight for all of them!!!!)
-    // Also multiply by the Jacobian
-    double delJJdelT[6][6] = {0};
-    for (int i = 0; i < 6; i++){
-      for (int j = 0; j < 6; j++){
-        for (int k = 0; k < 2; k++){
-          delJJdelT[i][j] += delJJ[i][k]*delT[k][j];
-        }
-      }
-    }
-
-
-    for (int i = 0; i < 6; i++){
-      printf("delJJdelT matrix   ");
-      for (int j = 0; j < 6; j++){
-        printf(" %f ",delJJdelT[i][j]);
-      }
-      printf("\n");
-    }
-
-
-    // Add all this to the result
-    printf("Adding to Result\n");
-    for (int i = 0; i < 6; i++){
-      for (int j = 0; j < 6; j++){
-        result[i][j] += delJJdelT[i][j];
-      }
-    }
-  }
-  for (int i = 0; i < 6; i++){
-    printf("Result matrix   ");
+    printf("delT matrix   ");
     for (int j = 0; j < 6; j++){
-      printf(" %f ",result[i][j]);
-    }
-    printf("\n");
+    printf(" %f ",delT[i][j]);
   }
-  // do the weight and jacobian business here
-  // Now send out the assembly
-  for (int i = 0; i < 6; i++){
-    for (int j = 0; j < 6; j++){
-      contribution c;
-      c.coefficient = result[i][j];
-      c.known = 0;
-      // Need to get the proper IDs of the nodes!!!
-      if (i<3){
-        //c.row = pumi_ment_getID(adjacentv[i]);
-        c.row = pumi_node_getNumber (numbering, adjacentv[i]);
+  printf("\n");
+}
+*/
+
+
+// New Jacobian
+double J[2][2][6] = {0};
+for (int i = 0; i < 2; i++){
+  for (int j = 0; j < 2; j++){
+    for (int k = 0; k < 6; k++){
+      double a = 0;
+      double b = 0;
+      if (i == 0){
+        b = del[k][0];
       }
-      else{
-        //c.row = pumi_ment_getID(sharededges[i-3]);
-        c.row = pumi_node_getNumber (numbering, sharededges[i-3]);
+      else {
+        b = del[k][1];
       }
-      if (j<3){
-        c.column = pumi_node_getNumber (numbering, adjacentv[j]);
-        //pumi_node_getNumber (numbering, adjacentv[j]);
+      if (j == 0){
+        a = xeT[k];
       }
-      else{
-        //c.column = pumi_ment_getID(sharededges[j-3]);
-        c.column = pumi_node_getNumber (numbering, sharededges[j-3]);
+      else {
+        a = yeT[k];
       }
-      //c.row = pumi_ment_getID(adjacent[i]);
-      //c.column = pumi_ment_getID(adjacent[j]);
-      region_contributions.push_back(c);
-      //printf("Row %d \n", c.row);
-      //printf("Column%d \n", c.column);
-      //printf("contribution coefficient %f \n", c.coefficient);
-      // Verify This !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      J[i][j][k] += a*b;
     }
   }
+}
+/*
+// Create Jacobian
+double J[2][2] = {0};
+for (int i = 0; i < 2; i++){
+for (int j = 0; j < 2; j++){
+for (int k = 0; k < 6; k++){
+double a = 0;
+double b = 0;
+if (i == 0){
+b = del[k][0];
+}
+else {
+b = del[k][1];
+}
+if (j == 0){
+a = xeT[k];
+}
+else {
+a = yeT[k];
+}
+J[i][j] += a*b;
+}
+}
+}
+*/
+
+
+for (int i = 0; i < 2; i++){
+  printf("J matrix   ");
+  for (int j = 0; j < 2; j++){
+    printf(" %f ",J[i][j]);
+  }
+  printf("\n");
+}
+
+
+// Get Jacobian determinant
+double detJ = J[0][0]*J[1][1]-J[0][1]*J[1][0];
+
+// Start multiplying the matrices
+double JJ[2][2] = {0};
+for (int i = 0; i < 2; i++){
+  for (int j = 0; j < 2; j++){
+    for (int k = 0; k < 2; k++){
+      JJ[i][j] += J[i][k]*J[k][j];
+    }
+  }
+}
+
+
+/*
+for (int i = 0; i < 2; i++){
+printf("JJ matrix   ");
+for (int j = 0; j < 2; j++){
+printf(" %f ",JJ[i][j]);
+}
+printf("\n");
+}
+*/
+
+
+double delJJ[6][2] = {0};
+for (int i = 0; i < 6; i++){
+  for (int j = 0; j < 2; j++){
+    for (int k = 0; k < 2; k++){
+      delJJ[i][j] += del[i][k]*JJ[k][j];
+      //printf("delJJ i %d j %d    %f \n",i,j,delJJ[i][j]);
+    }
+  }
+}
+
+
+/*
+for (int i = 0; i < 6; i++){
+printf("delJJ matrix   ");
+for (int j = 0; j < 2; j++){
+printf(" %f ",delJJ[i][j]);
+}
+printf("\n");
+}
+*/
+
+
+// Create complete matrix, and also do integral (divide by 2) and use weight
+//  (taking advantage of the common weight for all of them!!!!)
+// Also multiply by the Jacobian
+double delJJdelT[6][6] = {0};
+for (int i = 0; i < 6; i++){
+  for (int j = 0; j < 6; j++){
+    for (int k = 0; k < 2; k++){
+      delJJdelT[i][j] += delJJ[i][k]*delT[k][j];
+    }
+  }
+}
+
+
+for (int i = 0; i < 6; i++){
+  printf("delJJdelT matrix   ");
+  for (int j = 0; j < 6; j++){
+    printf(" %f ",delJJdelT[i][j]);
+  }
+  printf("\n");
+}
+
+
+// Add all this to the result
+printf("Adding to Result\n");
+for (int i = 0; i < 6; i++){
+  for (int j = 0; j < 6; j++){
+    result[i][j] += delJJdelT[i][j];
+  }
+}
+}
+for (int i = 0; i < 6; i++){
+  printf("Result matrix   ");
+  for (int j = 0; j < 6; j++){
+    printf(" %f ",result[i][j]);
+  }
+  printf("\n");
+}
+// do the weight and jacobian business here
+// Now send out the assembly
+for (int i = 0; i < 6; i++){
+  for (int j = 0; j < 6; j++){
+    contribution c;
+    c.coefficient = result[i][j];
+    c.known = 0;
+    // Need to get the proper IDs of the nodes!!!
+    if (i<3){
+      //c.row = pumi_ment_getID(adjacentv[i]);
+      c.row = pumi_node_getNumber (numbering, adjacentv[i]);
+    }
+    else{
+      //c.row = pumi_ment_getID(sharededges[i-3]);
+      c.row = pumi_node_getNumber (numbering, sharededges[i-3]);
+    }
+    if (j<3){
+      c.column = pumi_node_getNumber (numbering, adjacentv[j]);
+      //pumi_node_getNumber (numbering, adjacentv[j]);
+    }
+    else{
+      //c.column = pumi_ment_getID(sharededges[j-3]);
+      c.column = pumi_node_getNumber (numbering, sharededges[j-3]);
+    }
+    //c.row = pumi_ment_getID(adjacent[i]);
+    //c.column = pumi_ment_getID(adjacent[j]);
+    region_contributions.push_back(c);
+    //printf("Row %d \n", c.row);
+    //printf("Column%d \n", c.column);
+    //printf("contribution coefficient %f \n", c.coefficient);
+    // Verify This !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  }
+}
 }
 
 
