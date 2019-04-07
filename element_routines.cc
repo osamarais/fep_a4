@@ -424,9 +424,14 @@ void lin_str_tri(pMeshEnt e, std::vector<contribution> &region_contributions, pN
   // Matrix J depends on the quadrature rule;
   // Matrices del and delT depend on the quadrature rules
   // Use 3 point triangle quadrature
+  /*
   double Sin[3] = {2.0/3,1.0/6,1.0/6};
   double tin[3] = {1.0/6,2.0/3,1.0/6};
   double Win[3] = {1.0/3,1.0/3,1.0/3};
+  */
+  double Sin[1] = {1.0/3};
+  double tin[1] = {1.0/3};
+  double Win[1] = {1.0};
 
   // create analytical del matrix (split into the three components
   //         constant, s coefficient, and t coefficient)
@@ -439,7 +444,7 @@ void lin_str_tri(pMeshEnt e, std::vector<contribution> &region_contributions, pN
   double result[6][6] = {0};
   // calculate the numerical del matrix etc. using the three point quadrature
   // Loop for the three points and then sum up the resulting 6*6 matrix
-  for (int l = 0; l < 3; l++){
+  for (int l = 0; l < 1; l++){
     printf("Quadrature %d\n", l);
     double del[6][2] = {0};
     for (int i = 0; i < 6; i++){
@@ -451,6 +456,16 @@ void lin_str_tri(pMeshEnt e, std::vector<contribution> &region_contributions, pN
         //printf("quadrature points %f %f %f \n", Sin[l], tin[l], Win[l]);
       }
     }
+
+    for (int i = 0; i < 6; i++){
+      printf("del matrix   ");
+      for (int j = 0; j < 2; j++){
+        printf(" %f ",del[i][j]);
+      }
+      printf("\n");
+    }
+
+
     // transpose del matrix
     double delT[2][6] = {0};
     for (int i = 0; i < 6; i++){
@@ -459,9 +474,18 @@ void lin_str_tri(pMeshEnt e, std::vector<contribution> &region_contributions, pN
         //printf("del matrix i %d j %d    %f\n", i,j,del[i][j]);
       }
     }
-    for (int i = 0; i < 6; i++){
-      printf("del matrix %d       %f    %f\n\n", i, del[i][0], del[i][1]);
+
+    /*
+    for (int i = 0; i < 2; i++){
+      printf("delT matrix   ");
+      for (int j = 0; j < 6; j++){
+        printf(" %f ",delT[i][j]);
+      }
+      printf("\n");
     }
+    */
+
+
     // Create Jacobian
     double J[2][2] = {0};
     for (int i = 0; i < 2; i++){
@@ -486,9 +510,15 @@ void lin_str_tri(pMeshEnt e, std::vector<contribution> &region_contributions, pN
       }
     }
 
+
     for (int i = 0; i < 2; i++){
-      printf("J matrix %d       %f    %f\n\n", i, J[i][0], J[i][1]);
+      printf("J matrix   ");
+      for (int j = 0; j < 2; j++){
+        printf(" %f ",J[i][j]);
+      }
+      printf("\n");
     }
+
 
     // Get Jacobian determinant
     double detJ = J[0][0]*J[1][1]-J[0][1]*J[1][0];
@@ -502,6 +532,19 @@ void lin_str_tri(pMeshEnt e, std::vector<contribution> &region_contributions, pN
         }
       }
     }
+
+
+    /*
+    for (int i = 0; i < 2; i++){
+      printf("JJ matrix   ");
+      for (int j = 0; j < 2; j++){
+        printf(" %f ",JJ[i][j]);
+      }
+      printf("\n");
+    }
+    */
+
+
     double delJJ[6][2] = {0};
     for (int i = 0; i < 6; i++){
       for (int j = 0; j < 2; j++){
@@ -511,6 +554,19 @@ void lin_str_tri(pMeshEnt e, std::vector<contribution> &region_contributions, pN
         }
       }
     }
+
+
+    /*
+    for (int i = 0; i < 6; i++){
+      printf("delJJ matrix   ");
+      for (int j = 0; j < 2; j++){
+        printf(" %f ",delJJ[i][j]);
+      }
+      printf("\n");
+    }
+    */
+
+
     // Create complete matrix, and also do integral (divide by 2) and use weight
     //  (taking advantage of the common weight for all of them!!!!)
     // Also multiply by the Jacobian
@@ -522,14 +578,33 @@ void lin_str_tri(pMeshEnt e, std::vector<contribution> &region_contributions, pN
         }
       }
     }
+
+
+    for (int i = 0; i < 6; i++){
+      printf("delJJdelT matrix   ");
+      for (int j = 0; j < 6; j++){
+        printf(" %f ",delJJdelT[i][j]);
+      }
+      printf("\n");
+    }
+
+
     // Add all this to the result
     printf("Adding to Result\n");
     for (int i = 0; i < 6; i++){
       for (int j = 0; j < 6; j++){
-        result[i][j] += delJJdelT[i][j]*detJ*Win[l]*0.5;
+        result[i][j] += delJJdelT[i][j];
       }
     }
   }
+  for (int i = 0; i < 6; i++){
+    printf("Result matrix   ");
+    for (int j = 0; j < 6; j++){
+      printf(" %f ",result[i][j]);
+    }
+    printf("\n");
+  }
+  // do the weight and jacobian business here
   // Now send out the assembly
   for (int i = 0; i < 6; i++){
     for (int j = 0; j < 6; j++){
@@ -556,9 +631,9 @@ void lin_str_tri(pMeshEnt e, std::vector<contribution> &region_contributions, pN
       //c.row = pumi_ment_getID(adjacent[i]);
       //c.column = pumi_ment_getID(adjacent[j]);
       region_contributions.push_back(c);
-      printf("Row %d \n", c.row);
-      printf("Column%d \n", c.column);
-      printf("contribution coefficient %f \n", c.coefficient);
+      //printf("Row %d \n", c.row);
+      //printf("Column%d \n", c.column);
+      //printf("contribution coefficient %f \n", c.coefficient);
       // Verify This !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     }
   }
