@@ -424,14 +424,9 @@ void lin_str_tri(pMeshEnt e, std::vector<contribution> &region_contributions, pN
   // Matrix J depends on the quadrature rule;
   // Matrices del and delT depend on the quadrature rules
   // Use 3 point triangle quadrature
-  /*
   double Sin[3] = {2.0/3,1.0/6,1.0/6};
   double tin[3] = {1.0/6,2.0/3,1.0/6};
   double Win[3] = {1.0/3,1.0/3,1.0/3};
-  */
-  double Sin[1] = {1.0/3};
-  double tin[1] = {1.0/3};
-  double Win[1] = {1.0};
 
   // create analytical del matrix (split into the three components
   //         constant, s coefficient, and t coefficient)
@@ -444,7 +439,7 @@ void lin_str_tri(pMeshEnt e, std::vector<contribution> &region_contributions, pN
   double result[6][6] = {0};
   // calculate the numerical del matrix etc. using the three point quadrature
   // Loop for the three points and then sum up the resulting 6*6 matrix
-  for (int l = 0; l < 1; l++){
+  for (int l = 0; l < 3; l++){
     printf("Quadrature %d\n", l);
     double del[6][2] = {0};
     for (int i = 0; i < 6; i++){
@@ -487,11 +482,10 @@ void lin_str_tri(pMeshEnt e, std::vector<contribution> &region_contributions, pN
 
 
     // Create Jacobian
-    double J[6][2][2] = {0};
-    for (int k = 0; k < 6; k++){
-      for (int i = 0; i < 2; i++){
-        for (int j = 0; j < 2; j++){
-
+    double J[2][2] = {0};
+    for (int i = 0; i < 2; i++){
+      for (int j = 0; j < 2; j++){
+        for (int k = 0; k < 6; k++){
           double a = 0;
           double b = 0;
           if (i == 0){
@@ -506,34 +500,30 @@ void lin_str_tri(pMeshEnt e, std::vector<contribution> &region_contributions, pN
           else {
             a = yeT[k];
           }
-          J[k][i][j] += a*b;
+          J[i][j] += a*b;
         }
       }
     }
 
-    for (int k = 0; k < 6; k++){
-      printf("Jacobian %d \n", k);
-      for (int i = 0; i < 2; i++){
-        printf("J matrix   ");
-        for (int j = 0; j < 2; j++){
-          printf(" %f ",J[k][i][j]);
-        }
-        printf("\n");
+
+    for (int i = 0; i < 2; i++){
+      printf("J matrix   ");
+      for (int j = 0; j < 2; j++){
+        printf(" %f ",J[i][j]);
       }
+      printf("\n");
     }
 
 
     // Get Jacobian determinant
-    double detJ = J[0][0][0]*J[0][1][1]-J[0][0][1]*J[0][1][0];
+    double detJ = J[0][0]*J[1][1]-J[0][1]*J[1][0];
 
     // Start multiplying the matrices
-    double JJ[6][2][2] = {0};
-    for (int m = 0; m < 6; m++){
-      for (int i = 0; i < 2; i++){
-        for (int j = 0; j < 2; j++){
-          for (int k = 0; k < 2; k++){
-            JJ[i][j] += J[0][i][k]*J[0][k][j];
-          }
+    double JJ[2][2] = {0};
+    for (int i = 0; i < 2; i++){
+      for (int j = 0; j < 2; j++){
+        for (int k = 0; k < 2; k++){
+          JJ[i][j] += J[i][k]*J[k][j];
         }
       }
     }
