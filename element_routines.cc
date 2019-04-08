@@ -263,7 +263,7 @@ contribution region_routine(pMesh mesh, pMeshEnt e, std::vector<contribution> &r
 
 
 
-void const_str_tri(pMeshEnt e, std::vector<contribution> &region_contributions){
+void const_str_tri(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering numbering){
   int id = pumi_ment_getID(e);
   printf("\n\n\n\nRegion %d:\n\n",id);
   // Get global coordinates
@@ -321,7 +321,7 @@ void const_str_tri(pMeshEnt e, std::vector<contribution> &region_contributions){
   }
   for (int i = 0; i < 2; i++){
     for (int j = 0; j < 2; j++){
-        JJ[i][j] = J1[i][j]+J2[i][j];
+        JJ[i][j] = (J1[i][j]+J2[i][j])*(J[1][1]*J[0][0]-J[1][0]*J[0][1]);
         //printf("JJ %f \n", JJ[i][j]);
     }
   }
@@ -353,19 +353,17 @@ void const_str_tri(pMeshEnt e, std::vector<contribution> &region_contributions){
       contribution c;
       c.coefficient = delJJdelT[i][j];
       c.known = 0;
-      c.row = pumi_ment_getID(adjacent[i]);
-      c.column = pumi_ment_getID(adjacent[j]);
+      //c.row = pumi_ment_getID(adjacent[i]);
+      //c.column = pumi_ment_getID(adjacent[j]);
+      c.row = pumi_node_getNumber (numbering, adjacent[i]);
+      c.column = pumi_node_getNumber (numbering, adjacent[j]);
       region_contributions.push_back(c);
       printf("Row %d \n", c.row);
       printf("Column%d \n", c.column);
       printf("contribution coefficient %f \n", c.coefficient);
-      // fix this, numbering should be the new one
     }
   }
 }
-
-
-
 
 void lin_str_tri(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering numbering){
   // Get coordiantes of vertices
@@ -446,8 +444,8 @@ void lin_str_tri(pMeshEnt e, std::vector<contribution> &region_contributions, pN
   printf("y vertex 6 %f\n\n", coord6[1]);
 
   // Create x and y vectors
-  double xeT[6] = {coord1[0],coord2[0],coord3[0],coord4[0],coord5[0],coord6[0]};
-  double yeT[6] = {coord1[1],coord2[1],coord3[1],coord4[1],coord5[1],coord6[1]};
+  //double xeT[6] = {coord1[0],coord2[0],coord3[0],coord4[0],coord5[0],coord6[0]};
+  //double yeT[6] = {coord1[1],coord2[1],coord3[1],coord4[1],coord5[1],coord6[1]};
   // Create s and t vectors
   // no need for these
   //double s[6] = {0,1,0,0.5,0.5,0};
@@ -511,7 +509,9 @@ void lin_str_tri(pMeshEnt e, std::vector<contribution> &region_contributions, pN
     }
     */
 
-    // Jacobian is constant because of linear transformation (elements are subparametric)
+
+    // Generate Jacobian
+    // The edges are linear (subparametric) so simply use the T3 Jacobian!
     double J[2][2];
     J[0][0] = coord1[0] - coord3[0];
     J[0][1] = coord1[1] - coord3[1];
@@ -534,88 +534,30 @@ void lin_str_tri(pMeshEnt e, std::vector<contribution> &region_contributions, pN
     Jin[0][1] = -J[0][1]/(J[1][1]*J[0][0]-J[1][0]*J[0][1]);
     for (int i = 0; i < 2; i++){
       for (int j = 0; j < 2; j++){
-          //printf("Jin %f \n", Jin[i][j]);
+          printf("Jin %f \n", Jin[i][j]);
       }
     }
     for (int i = 0; i < 2; i++){
       for (int j = 0; j < 2; j++){
           J1[i][j] = Jin[0][i]*Jin[0][j];
-          //printf("J1 %f \n", J1[i][j]);
+          printf("J1 %f \n", J1[i][j]);
       }
     }
     for (int i = 0; i < 2; i++){
       for (int j = 0; j < 2; j++){
           J2[i][j] = Jin[1][i]*Jin[1][j];
-          //printf("J2 %f \n", J2[i][j]);
+          printf("J2 %f \n", J2[i][j]);
       }
     }
     for (int i = 0; i < 2; i++){
       for (int j = 0; j < 2; j++){
-          JJ[i][j] = J1[i][j]+J2[i][j];
-          //printf("JJ %f \n", JJ[i][j]);
+          JJ[i][j] = (J1[i][j]+J2[i][j])*(J[1][1]*J[0][0]-J[1][0]*J[0][1]);
+          printf("JJ %f \n", JJ[i][j]);
       }
     }
 
 
-    /*
-    // Create Jacobian
-    double J[2][2] = {0};
-    for (int i = 0; i < 2; i++){
-      for (int j = 0; j < 2; j++){
-        for (int k = 0; k < 6; k++){
-          double a = 0;
-          double b = 0;
-          if (i == 0){
-            b = del[k][0];
-          }
-          else {
-            b = del[k][1];
-          }
-          if (j == 0){
-            a = xeT[k];
-          }
-          else {
-            a = yeT[k];
-          }
-          J[i][j] += a*b;
-        }
-      }
-    }
-    */
 
-
-    for (int i = 0; i < 2; i++){
-      printf("J matrix   ");
-      for (int j = 0; j < 2; j++){
-        printf(" %f ",J[i][j]);
-      }
-      printf("\n");
-    }
-
-
-    // Get Jacobian determinant
-    double detJ = J[0][0]*J[1][1]-J[0][1]*J[1][0];
-
-    // Start multiplying the matrices
-    double JJ[2][2] = {0};
-    for (int i = 0; i < 2; i++){
-      for (int j = 0; j < 2; j++){
-        for (int k = 0; k < 2; k++){
-          JJ[i][j] += J[i][k]*J[k][j];
-        }
-      }
-    }
-
-
-    /*
-    for (int i = 0; i < 2; i++){
-      printf("JJ matrix   ");
-      for (int j = 0; j < 2; j++){
-        printf(" %f ",JJ[i][j]);
-      }
-      printf("\n");
-    }
-    */
 
 
     double delJJ[6][2] = {0};
@@ -623,7 +565,7 @@ void lin_str_tri(pMeshEnt e, std::vector<contribution> &region_contributions, pN
       for (int j = 0; j < 2; j++){
         for (int k = 0; k < 2; k++){
           delJJ[i][j] += del[i][k]*JJ[k][j];
-          //printf("delJJ i %d j %d    %f \n",i,j,delJJ[i][j]);
+          printf("delJJ i %d j %d    %f \n",i,j,delJJ[i][j]);
         }
       }
     }
@@ -704,10 +646,11 @@ void lin_str_tri(pMeshEnt e, std::vector<contribution> &region_contributions, pN
       //c.row = pumi_ment_getID(adjacent[i]);
       //c.column = pumi_ment_getID(adjacent[j]);
       region_contributions.push_back(c);
-      //printf("Row %d \n", c.row);
-      //printf("Column%d \n", c.column);
-      //printf("contribution coefficient %f \n", c.coefficient);
+      printf("Row %d \n", c.row);
+      printf("Column%d \n", c.column);
+      printf("contribution coefficient %f \n", c.coefficient);
       // Verify This !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      // fix the determinant division multiplication business
     }
   }
 }
