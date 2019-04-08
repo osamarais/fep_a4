@@ -287,15 +287,45 @@ void const_str_tri(pMeshEnt e, std::vector<contribution> &region_contributions){
   J[0][1] = coord1[1] - coord3[1];
   J[1][0] = coord2[0] - coord3[0];
   J[1][1] = coord2[1] - coord3[1];
-  // Multiply and get jj
-  double JJ[2][2] = {0};
   for (int i = 0; i < 2; i++){
     for (int j = 0; j < 2; j++){
-      for (int k = 0; k < 2; k++){
-        JJ[i][j] += J[i][k]*J[k][j];
-      }
+      printf("J i %d j %d    %f \n",i,j,J[i][j]);
     }
   }
+  // Get JJ Matrix
+  double JJ[2][2] = {0};
+  // J inverse
+  double Jin[2][2] = {0};
+  double J1[2][2] = {0};
+  double J2[2][2] = {0};
+  Jin[0][0] = J[1][1]/(J[1][1]*J[0][0]-J[1][0]*J[0][1]);
+  Jin[1][1] = J[0][0]/(J[1][1]*J[0][0]-J[1][0]*J[0][1]);
+  Jin[1][0] = -J[1][0]/(J[1][1]*J[0][0]-J[1][0]*J[0][1]);
+  Jin[0][1] = -J[0][1]/(J[1][1]*J[0][0]-J[1][0]*J[0][1]);
+  for (int i = 0; i < 2; i++){
+    for (int j = 0; j < 2; j++){
+        //printf("Jin %f \n", Jin[i][j]);
+    }
+  }
+  for (int i = 0; i < 2; i++){
+    for (int j = 0; j < 2; j++){
+        J1[i][j] = Jin[0][i]*Jin[0][j];
+        //printf("J1 %f \n", J1[i][j]);
+    }
+  }
+  for (int i = 0; i < 2; i++){
+    for (int j = 0; j < 2; j++){
+        J2[i][j] = Jin[1][i]*Jin[1][j];
+        //printf("J2 %f \n", J2[i][j]);
+    }
+  }
+  for (int i = 0; i < 2; i++){
+    for (int j = 0; j < 2; j++){
+        JJ[i][j] = J1[i][j]+J2[i][j];
+        //printf("JJ %f \n", JJ[i][j]);
+    }
+  }
+
   // Create Del Matrices and Multiply
   double del[3][2] = {{1,0},{0,1},{-1,-1}};
   double delT[2][3] = {{1,0,-1},{0,1,-1}};
@@ -304,7 +334,7 @@ void const_str_tri(pMeshEnt e, std::vector<contribution> &region_contributions){
     for (int j = 0; j < 2; j++){
       for (int k = 0; k < 2; k++){
         delJJ[i][j] += del[i][k]*JJ[k][j];
-        printf("JJ i %d j %d    %f \n",i,j,delJJ[i][j]);
+        //printf("delJJ i %d j %d    %f \n",i,j,delJJ[i][j]);
       }
     }
   }
