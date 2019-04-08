@@ -359,6 +359,7 @@ void const_str_tri(pMeshEnt e, std::vector<contribution> &region_contributions){
       printf("Row %d \n", c.row);
       printf("Column%d \n", c.column);
       printf("contribution coefficient %f \n", c.coefficient);
+      // fix this, numbering should be the new one
     }
   }
 }
@@ -510,7 +511,53 @@ void lin_str_tri(pMeshEnt e, std::vector<contribution> &region_contributions, pN
     }
     */
 
+    // Jacobian is constant because of linear transformation (elements are subparametric)
+    double J[2][2];
+    J[0][0] = coord1[0] - coord3[0];
+    J[0][1] = coord1[1] - coord3[1];
+    J[1][0] = coord2[0] - coord3[0];
+    J[1][1] = coord2[1] - coord3[1];
+    for (int i = 0; i < 2; i++){
+      for (int j = 0; j < 2; j++){
+        printf("J i %d j %d    %f \n",i,j,J[i][j]);
+      }
+    }
+    // Get JJ Matrix
+    double JJ[2][2] = {0};
+    // J inverse
+    double Jin[2][2] = {0};
+    double J1[2][2] = {0};
+    double J2[2][2] = {0};
+    Jin[0][0] = J[1][1]/(J[1][1]*J[0][0]-J[1][0]*J[0][1]);
+    Jin[1][1] = J[0][0]/(J[1][1]*J[0][0]-J[1][0]*J[0][1]);
+    Jin[1][0] = -J[1][0]/(J[1][1]*J[0][0]-J[1][0]*J[0][1]);
+    Jin[0][1] = -J[0][1]/(J[1][1]*J[0][0]-J[1][0]*J[0][1]);
+    for (int i = 0; i < 2; i++){
+      for (int j = 0; j < 2; j++){
+          //printf("Jin %f \n", Jin[i][j]);
+      }
+    }
+    for (int i = 0; i < 2; i++){
+      for (int j = 0; j < 2; j++){
+          J1[i][j] = Jin[0][i]*Jin[0][j];
+          //printf("J1 %f \n", J1[i][j]);
+      }
+    }
+    for (int i = 0; i < 2; i++){
+      for (int j = 0; j < 2; j++){
+          J2[i][j] = Jin[1][i]*Jin[1][j];
+          //printf("J2 %f \n", J2[i][j]);
+      }
+    }
+    for (int i = 0; i < 2; i++){
+      for (int j = 0; j < 2; j++){
+          JJ[i][j] = J1[i][j]+J2[i][j];
+          //printf("JJ %f \n", JJ[i][j]);
+      }
+    }
 
+
+    /*
     // Create Jacobian
     double J[2][2] = {0};
     for (int i = 0; i < 2; i++){
@@ -534,6 +581,7 @@ void lin_str_tri(pMeshEnt e, std::vector<contribution> &region_contributions, pN
         }
       }
     }
+    */
 
 
     for (int i = 0; i < 2; i++){
