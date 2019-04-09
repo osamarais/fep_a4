@@ -103,7 +103,7 @@ void get_all_boundary_edges(pGeom &g,pMesh &mesh, std::vector<boundary_struct> &
 }
 
 
-// Get a list of all the vertices on boundaries
+// Get a list of ALL the nodes on boundaries
 void get_all_boundary_nodes(pMesh &mesh, std::vector<boundary_struct> &boundary_edges, std::vector<boundary_struct> &mesh_ents,pNumbering numbering){
   // Get the adjacent vertices of all the edges.
   // avoid duplication by checking the list and tallying against e and boundary both
@@ -266,6 +266,8 @@ bool reorder_verts(Adjacent &adjacent){
   return false;
 }
 
+
+//                        Add forcing contributors to the element routines                           //
 // Element routine for T3
 void T3(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering numbering){
   int id = pumi_ment_getID(e);
@@ -1164,38 +1166,47 @@ contribution region_routine(pMesh mesh, pMeshEnt e, pNumbering numbering, std::v
 
 
 // Edge routine for boundaries
-// Inputs: one edge at a time, info about BCs at the faces (defined using the function)
+// Inputs: one edge at a time, and the vecotr of assembly contributions
 // Outputs
-contribution edge_routine(boundary_struct edges){
+void edge_routine(pMesh mesh, boundary_struct edge, pNumbering numbering, std::vector<contribution> &region_contributions){
+  //Hughes pg. 109
   // Get the boundary number using the already defined function
   // Apply the proper quadrature at that boundary and create the contributions
   // Boundary may have nodes on it too, so implement the seperate quadrature for it also.
+  // Detect the proper type of the edge and simply use the proper procedure accordingly
+
+  // Get the length of the edge and then transform it
+  // Get the coordinates of the adjacent vertices.
+  Adjacent adjacent;
+  pumi_ment_getAdjacent(edge.e,0,adjacent);
+  double coord1[3];
+  double coord2[3];
+  pumi_node_getCoord(adjacent[0], 0, coord1);
+  pumi_node_getCoord(adjacent[1], 0, coord2);
+  // Calculate the length
+  double len = sqrt( pow(coord1[0]-coord2[0],2) + pow(coord1[1]-coord2[1],2) );
+
+
+
+  if (!hasNode(mesh,edge.e)){
+    // Use linear function quadrature to get the edge contribution
+    // Bickford pg.256-7
+    double a[2][2] = {0};
+    a[0][0] = len/12*(edge.first);
+  }
+  else {
+    // Use quadratic function quadrature
+    // Bickford pg 331
+  }
+
 }
 
 
 
-// The ordering of the elements must be ascertained properly to assemble the matrix. // Done
-// This means that: loop over the elements in any order that is found to be okay  // Done
-// Simply get the numbering from the appropriate numbering we have created for the faces and the nodes. // Done
-// Over here we must check if we have already done the reordering or not so that we may use the appropriate numbering from the mesh // Not needed
-// Another way is to push all new element matrices into a std::vector type container (https://www.geeksforgeeks.org/vector-insert-function-in-c-stl/)
-// and then sort them using some numbering. (https://www.geeksforgeeks.org/sorting-a-vector-in-c/)
-
-
-// Contributor Calculators
-// Stiffness Contributor
 // Force Contributor (face)
-// Force Contributor (edge)
 
-// Constraint makers
-// Constrain edge // if esential boundary condition is on some edge (not necessary, vertices also share the same)
-// Constrain vertex
+// Constrain a node
 
-
-// To assemble the matrix
-// 1) Loop over all the vertices
-// 2) If shape is Lagrange then loop over edges and get their node too
-// 3) Use the new numbering to pass these to an assembly function
 
 
 //

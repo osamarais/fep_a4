@@ -1,0 +1,12 @@
+implement stiffness and forcing contributors to the edge boundary element_routines
+implement forcing contributors to the element Matrices
+make an essential_BC enforcing function
+
+make a golbal stiffness and forcing matix and vectors
+
+assemble the stiffnexx matrix using the calculated information
+solve matrix and apply the results to a new solution field
+
+verify solution
+
+retrieve secondary variables

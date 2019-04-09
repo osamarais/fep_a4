@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <iostream>
+##include <cmath>
 using namespace std;
 #include "reorder.cc"
 #include "element_routines.cc"
