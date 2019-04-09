@@ -30,11 +30,14 @@ int main(int argc, char** argv)
   pGeom geom = pumi_geom_load(argv[1],"mesh");
   pMesh mesh = pumi_mesh_load(geom,argv[2],1);
 
-  // Convert some mesh to Lagrange
-  //if(!strcmp (argv[1], "reorder_b.dmg")) {
+  // Convert some mesh to Lagrange or Serendipity
+  if(!strcmp (argv[1], "reorder_a.dmg")) {
+    pumi_mesh_setShape(mesh,pumi_shape_getSerendipity());
+  }
+  else{
     pumi_mesh_setShape(mesh,pumi_shape_getLagrange(2));
-    pumi_mesh_print(mesh);
-  //}
+  }
+  pumi_mesh_print(mesh);
 
 
 
@@ -125,6 +128,23 @@ int main(int argc, char** argv)
   }
   mesh->end(it);
   printf("Generated region contributions\n");
+
+
+
+  it = mesh->begin(0);
+  while ((e = mesh->iterate(it))){
+    if(!pumi_node_isNumbered(numbering,e,0,0)){
+      printf("not numbered 1 \n");
+    }
+  }
+  mesh->end(it);
+  it = mesh->begin(1);
+  while ((e = mesh->iterate(it))){
+    if(!pumi_node_isNumbered(numbering,e,0,0)){
+      printf("not numbered 2 \n");
+    }
+  }
+  mesh->end(it);
 
 
 
