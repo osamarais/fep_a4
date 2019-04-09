@@ -32,7 +32,7 @@ int main(int argc, char** argv)
 
   // Convert some mesh to Lagrange
   //if(!strcmp (argv[1], "reorder_b.dmg")) {
-    pumi_mesh_setShape(mesh,pumi_shape_getLagrange(2));
+    //pumi_mesh_setShape(mesh,pumi_shape_getLagrange(2));
     pumi_mesh_print(mesh);
   //}
 
@@ -121,7 +121,7 @@ int main(int argc, char** argv)
   // Generate the region contributions
   it = mesh->begin(2);
   while ((e = mesh->iterate(it))){
-    T3(e, all_contributions, numbering);
+    Q4(e, all_contributions, numbering);
   }
   mesh->end(it);
   printf("Generated region contributions\n");
