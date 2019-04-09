@@ -1,3 +1,3 @@
 git add ./*
-git commit -m "Fixed jacobian scaling by determinant, fixed rows and columns issue"
+git commit -m "Symmetric correct results for lin and const tri, cleaned up prints"
 git push -u origin master
