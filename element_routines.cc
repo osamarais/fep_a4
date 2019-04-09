@@ -1,8 +1,6 @@
 // This file contains all the functions for the element routines
 
 // Header
-std::pair<bool,double> essential_BC(int boundary_number);
-std::pair<double,double> natural_BC(int boundary_number);
 
 
 struct contribution{
@@ -15,9 +13,17 @@ struct contribution{
 struct boundary_struct{
   int boundary;
   pMeshEnt e;
+  double first;     // Placeholder for either boolean or alpha
+  double second;    // Placeholder for either value or beta
 };
 
+struct BC{
+  double first;     // Placeholder for either boolean or alpha
+  double second;    // Placeholder for either value or beta
+};
 
+BC essential_BC(int boundary_number, pMeshEnt e, pNumbering numbering);
+BC natural_BC(int boundary_number);
 
 
 
@@ -85,6 +91,12 @@ void get_all_boundary_edges(pGeom &g,pMesh &mesh, std::vector<boundary_struct> &
       boundary_struct this_edge;
       this_edge.boundary = pumi_gent_getID(*it1);
       this_edge.e = *it2;
+      // fill out the natural boundary condition
+      BC natural;
+      natural = natural_BC(this_edge.boundary);
+      this_edge.first = natural.first;
+      this_edge.second = natural.second;
+      // push back
       mesh_ents.push_back(this_edge);
     }
   }
@@ -92,22 +104,45 @@ void get_all_boundary_edges(pGeom &g,pMesh &mesh, std::vector<boundary_struct> &
 
 
 // Get a list of all the vertices on boundaries
-void get_all_boundary_nodes(pMesh &mesh, std::vector<boundary_struct> &boundary_edges, std::vector<boundary_struct> &mesh_ents){
+void get_all_boundary_nodes(pMesh &mesh, std::vector<boundary_struct> &boundary_edges, std::vector<boundary_struct> &mesh_ents,pNumbering numbering){
   // Get the adjacent vertices of all the edges.
   // avoid duplication by checking the list and tallying against e and boundary both
-  // allow vertex to be classifoed on more than one boundary
+  // allow vertex to be classified on more than one boundary
   // Iterate over the edges
   for (std::vector<boundary_struct>::iterator it1 = boundary_edges.begin(); it1!= boundary_edges.end(); ++it1){
     boundary_struct this_edge = *it1;
-    // Get the adjacent edges
+    // Get the adjacent vertices
     // go through the container, check if both boundary and e have not been satisfied. if not push back
     Adjacent adjacent;
     pumi_ment_getAdjacent(this_edge.e,0,adjacent);
+    // If edge has a node then simply push it back without checking anything since it cannot be duplicated
+    if (hasNode(mesh,this_edge.e)){
+      //printf("Found an edge node\n");
+      // Get the BC
+      boundary_struct edge_node;
+      edge_node.boundary = this_edge.boundary;
+      edge_node.e = this_edge.e;
+      BC essential;
+      essential = essential_BC(this_edge.boundary, this_edge.e, numbering);
+      edge_node.first = essential.first;
+      edge_node.second = essential.second;
+      // push it back
+
+      mesh_ents.push_back(edge_node);
+    }
+
+
     if (mesh_ents.size() == 0){
       // push back the first vertices to intitialize the iteration
       boundary_struct this_vert;
       this_vert.boundary = this_edge.boundary;
       this_vert.e = adjacent[0];
+      // Get the boundary condition
+      BC essential;
+      essential = essential_BC(this_vert.boundary, this_vert.e, numbering);
+      this_vert.first = essential.first;
+      this_vert.second = essential.second;
+
       mesh_ents.push_back(this_vert);
       //printf("Added first vertex\n");
     }
@@ -120,6 +155,12 @@ void get_all_boundary_nodes(pMesh &mesh, std::vector<boundary_struct> &boundary_
         // if found flag and break
         this_vert.e = adjacent[i];
         this_vert.boundary = this_edge.boundary;
+        // Get the boundary condition
+        BC essential;
+        essential = essential_BC(this_vert.boundary, this_vert.e,numbering);
+        this_vert.first = essential.first;
+        this_vert.second = essential.second;
+
         boundary_struct other_vert;
         other_vert = *it2;
         if ((this_vert.boundary == other_vert.boundary)&&(this_vert.e == other_vert.e)){
@@ -130,7 +171,7 @@ void get_all_boundary_nodes(pMesh &mesh, std::vector<boundary_struct> &boundary_
       // if flag is still false, add the vertex
       if (!found){
         mesh_ents.push_back(this_vert);
-        //printf("Vertex %d has been added \n", pumi_ment_getID(this_vert.e));
+        printf("Vertex %d has been added \n", pumi_ment_getID(this_vert.e));
       }
     }
   }
@@ -628,7 +669,7 @@ for (int i = 0; i < 6; i++){
 // Element routine for Q4
 void Q4(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering numbering){
   int id = pumi_ment_getID(e);
-  printf("\n\n\n\nRegion %d:\n\n",id);
+  //printf("\n\n\n\nRegion %d:\n\n",id);
   // Get global coordinates
   Adjacent adjacent;
   pumi_ment_getAdjacent(e,0,adjacent);
@@ -640,7 +681,7 @@ void Q4(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering 
   pumi_node_getCoord(adjacent[1], 0, coord2);
   pumi_node_getCoord(adjacent[2], 0, coord3);
   pumi_node_getCoord(adjacent[3], 0, coord4);
-
+  /*
   printf("x vertex 1 %f\n", coord1[0]);
   printf("y vertex 1 %f\n", coord1[1]);
   printf("x vertex 2 %f\n", coord2[0]);
@@ -649,7 +690,7 @@ void Q4(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering 
   printf("y vertex 3 %f\n", coord3[1]);
   printf("x vertex 4 %f\n", coord4[0]);
   printf("y vertex 4 %f\n\n", coord4[1]);
-
+  */
   // Generate xeT and yeT vectors
   //double xeT[4] = {coord1[0],coord2[0],coord3[0],coord4[0]};
   //double yeT[4] = {coord1[1],coord2[1],coord3[1],coord4[1]};
@@ -704,22 +745,22 @@ void Q4(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering 
       // FIX ALL INDICES FOR MULTIPLICATION ETC
       for (int i = 0; i < 2; i++){
         for (int j = 0; j < 2; j++){
-          printf("J %f \n", J[i][j]);
+          //printf("J %f \n", J[i][j]);
         }
       }
       for (int i = 0; i < 2; i++){
         for (int j = 0; j < 2; j++){
-          printf("J_analytical 1 %f \n", J_analytical[i][j][0]);
+          //printf("J_analytical 1 %f \n", J_analytical[i][j][0]);
         }
       }
       for (int i = 0; i < 2; i++){
         for (int j = 0; j < 2; j++){
-          printf("J_analytical 2 %f \n", J_analytical[i][j][1]);
+          //printf("J_analytical 2 %f \n", J_analytical[i][j][1]);
         }
       }
       for (int i = 0; i < 2; i++){
         for (int j = 0; j < 2; j++){
-          printf("J_analytical 3 %f \n", J_analytical[i][j][2]);
+          //printf("J_analytical 3 %f \n", J_analytical[i][j][2]);
         }
       }
 
@@ -736,25 +777,25 @@ void Q4(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering 
       Jin[0][1] = -J[0][1]/(J[1][1]*J[0][0]-J[1][0]*J[0][1]);
       for (int i = 0; i < 2; i++){
         for (int j = 0; j < 2; j++){
-          printf("Jin %f \n", Jin[i][j]);
+          //printf("Jin %f \n", Jin[i][j]);
         }
       }
       for (int i = 0; i < 2; i++){
         for (int j = 0; j < 2; j++){
           J1[i][j] = Jin[0][i]*Jin[0][j];
-          printf("J1 %f \n", J1[i][j]);
+          //printf("J1 %f \n", J1[i][j]);
         }
       }
       for (int i = 0; i < 2; i++){
         for (int j = 0; j < 2; j++){
           J2[i][j] = Jin[1][i]*Jin[1][j];
-          printf("J2 %f \n", J2[i][j]);
+          //printf("J2 %f \n", J2[i][j]);
         }
       }
       for (int i = 0; i < 2; i++){
         for (int j = 0; j < 2; j++){
           JJ[i][j] = (J1[i][j]+J2[i][j])*(J[1][1]*J[0][0]-J[1][0]*J[0][1]);
-          printf("JJ %f \n", JJ[i][j]);
+          //printf("JJ %f \n", JJ[i][j]);
         }
       }
 
@@ -763,7 +804,7 @@ void Q4(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering 
       for (int i = 0; i < 4; i++){
         for (int j = 0; j < 2; j++){
           delT[j][i] = del[i][j];
-          printf("delT matrix i %d j %d    %f\n", i,j,del[i][j]);
+          //printf("delT matrix i %d j %d    %f\n", i,j,del[i][j]);
         }
       }
 
@@ -773,7 +814,7 @@ void Q4(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering 
         for (int j = 0; j < 2; j++){
           for (int k = 0; k < 2; k++){
             delJJ[i][j] += del[i][k]*JJ[k][j];
-            printf("delJJ i %d j %d    %f \n",i,j,delJJ[i][j]);
+            //printf("delJJ i %d j %d    %f \n",i,j,delJJ[i][j]);
           }
         }
       }
@@ -809,9 +850,11 @@ void Q4(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering 
       c.row = pumi_node_getNumber (numbering, adjacent[i]);
       c.column = pumi_node_getNumber (numbering, adjacent[j]);
       region_contributions.push_back(c);
+      /*
       printf("Row %d \n", c.row);
       printf("Column%d \n", c.column);
       printf("contribution coefficient %f \n", c.coefficient);
+      */
     }
   }
 }
@@ -819,7 +862,7 @@ void Q4(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering 
 // Element routine for Q8
 void Q8(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering numbering){
   int id = pumi_ment_getID(e);
-  printf("\n\n\n\nRegion %d:\n\n",id);
+  //printf("\n\n\n\nRegion %d:\n\n",id);
   // Get global coordinates
   Adjacent adjacentv;
   pumi_ment_getAdjacent(e,0,adjacentv);
@@ -831,7 +874,7 @@ void Q8(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering 
   pumi_node_getCoord(adjacentv[1], 0, coord2);
   pumi_node_getCoord(adjacentv[2], 0, coord3);
   pumi_node_getCoord(adjacentv[3], 0, coord4);
-
+  /*
   printf("x vertex 1 %f\n", coord1[0]);
   printf("y vertex 1 %f\n", coord1[1]);
   printf("x vertex 2 %f\n", coord2[0]);
@@ -840,7 +883,7 @@ void Q8(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering 
   printf("y vertex 3 %f\n", coord3[1]);
   printf("x vertex 4 %f\n", coord4[0]);
   printf("y vertex 4 %f\n\n", coord4[1]);
-
+  */
   // Generate xeT and yeT vectors
   //double xeT[4] = {coord1[0],coord2[0],coord3[0],coord4[0]};
   //double yeT[4] = {coord1[1],coord2[1],coord3[1],coord4[1]};
@@ -907,7 +950,7 @@ void Q8(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering 
 
 
   }/////////////////////////////////////////
-
+  /*
   printf("x vertex 5 %f\n", coord5[0]);
   printf("y vertex 5 %f\n", coord5[1]);
   printf("x vertex 6 %f\n", coord6[0]);
@@ -916,6 +959,7 @@ void Q8(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering 
   printf("y vertex 7 %f\n", coord7[1]);
   printf("x vertex 8 %f\n", coord8[0]);
   printf("y vertex 8 %f\n\n", coord8[1]);
+  */
 
 
 
@@ -1037,11 +1081,11 @@ void Q8(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering 
       // add to result matrix
       // print result matrix
       for (int i = 0; i < 8; i++){
-        printf("result     %d", i);
+        //printf("result     %d", i);
         for (int j = 0; j < 8; j++){
-          printf(" %2.2f ", result[i][j]);
+          //printf(" %2.2f ", result[i][j]);
         }
-        printf("\n");
+        //printf("\n");
       }
     }
   }
@@ -1074,14 +1118,16 @@ void Q8(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering 
       //c.row = pumi_ment_getID(adjacent[i]);
       //c.column = pumi_ment_getID(adjacent[j]);
       region_contributions.push_back(c);
+      /*
       printf("Row %d \n", c.row);
       printf("Column%d \n", c.column);
       printf("contribution coefficient %f \n", c.coefficient);
+      */
     }
   }
 }
 
-
+// Generic region routine, will region contributions for all defined elements
 contribution region_routine(pMesh mesh, pMeshEnt e, pNumbering numbering, std::vector<contribution> &region_contributions){
   //contribution region_contribution;
   switch (get_element_type(mesh,e)) {
@@ -1110,6 +1156,21 @@ contribution region_routine(pMesh mesh, pMeshEnt e, pNumbering numbering, std::v
   }
 }
 
+// Also implement the forcing contribution
+
+
+// Now need to implement the edge boundary conditions and the essential boundary conditon enforcer
+// This will be done using the boundary conditions vectors that we have created.
+
+
+// Edge routine for boundaries
+// Inputs: one edge at a time, info about BCs at the faces (defined using the function)
+// Outputs
+contribution edge_routine(boundary_struct edges){
+  // Get the boundary number using the already defined function
+  // Apply the proper quadrature at that boundary and create the contributions
+  // Boundary may have nodes on it too, so implement the seperate quadrature for it also.
+}
 
 
 

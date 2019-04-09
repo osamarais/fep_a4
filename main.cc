@@ -10,7 +10,10 @@ using namespace std;
 #include "postprocessing_routines.cc"
 
 
-double boundary_conditions(pMeshEnt e);
+//double boundary_conditions(pMeshEnt e);
+
+//std::pair<bool,double> essential_BC(int boundary_number);
+//std::pair<double,double> natural_BC(int boundary_number);
 
 int main(int argc, char** argv)
 {
@@ -32,10 +35,10 @@ int main(int argc, char** argv)
 
   // Convert some mesh to Lagrange or Serendipity
   if(!strcmp (argv[1], "reorder_a.dmg")) {
-    //pumi_mesh_setShape(mesh,pumi_shape_getSerendipity());
+    pumi_mesh_setShape(mesh,pumi_shape_getSerendipity());
   }
   else{
-    //pumi_mesh_setShape(mesh,pumi_shape_getLagrange(2));
+    pumi_mesh_setShape(mesh,pumi_shape_getLagrange(2));
   }
   pumi_mesh_print(mesh);
 
@@ -89,11 +92,11 @@ int main(int argc, char** argv)
 
   // Get all the boundary vertices
   std::vector<boundary_struct> boundary_verts;
-  get_all_boundary_nodes(mesh, boundary_edges, boundary_verts);
+  get_all_boundary_nodes(mesh, boundary_edges, boundary_verts, numbering);
   // Now print all the boundary nodes
   for (std::vector<boundary_struct>::iterator it = boundary_verts.begin(); it!= boundary_verts.end(); ++it){
     boundary_struct this_vert = *it;
-    printf("Vertex %d is on %d \n", pumi_ment_getID(this_vert.e), this_vert.boundary);
+    printf("Vertex %d is on %d \n", pumi_node_getNumber(numbering, this_vert.e), this_vert.boundary);
   }
   // Try to find which boundary something is on
   std::vector<int> list;
@@ -187,6 +190,67 @@ printf("\n ELEMENT IS NOT ON A BOUNDARY!!! \n");
 
 // Simple definitions of boundaries.
 
+// Define the essential boundary condition using either the local ID or the boundary number
+BC essential_BC(int boundary_number, pMeshEnt e, pNumbering numbering){
+  // simply return the known
+  BC BCe;
+  //int localid = pumi_ment_getID(e);
+  // get id of the field node using the numbering
+  int number = pumi_node_getNumber (numbering, e);
+
+  BCe.first = 1;
+  switch (boundary_number) {
+    case 0:
+    BCe.first = 0;
+    BCe.second = 0;
+    return BCe;
+    default:
+
+    BCe.first = 0;
+    BCe.second = 0;
+    return BCe;
+  }
+
+  switch (number) {
+    case 0:
+    BCe.first = 0;
+    BCe.second = 0;
+    return BCe;
+    default:
+
+    BCe.first = 0;
+    BCe.second = 0;
+    return BCe;
+  }
+}
+
+
+// Define natural boundary condition using the boundary number
+BC natural_BC(int boundary_number){
+  // push back alpha and then h (coefficeient and then known)
+  BC BCn;
+  switch (boundary_number) {
+    case 0:
+    BCn.first = 0.5;
+    BCn.second = 0.8;
+    return BCn;
+
+    case 1:
+    BCn.first = 0.5;
+    BCn.second = 0.8;
+    return BCn;
+
+    default:
+    BCn.first = 0;
+    BCn.second = 0;
+    return BCn;
+  }
+}
+
+
+
+// Old BC Structure
+/*
 std::pair<bool,double> essential_BC(int boundary_number){
   // simply return the known
   std::pair<bool,double> BC;
@@ -224,3 +288,4 @@ std::pair<double,double> natural_BC(int boundary_number){
     return BC;
   }
 }
+*/
