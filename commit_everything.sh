@@ -1,3 +1,3 @@
 git add ./*
-git commit -m "Fixed Lagrange Serendipity Issue, Q8 not verified"
+git commit -m "Now using generic region detector, Q8 not verified"
 git push -u origin master

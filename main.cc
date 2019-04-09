@@ -32,10 +32,10 @@ int main(int argc, char** argv)
 
   // Convert some mesh to Lagrange or Serendipity
   if(!strcmp (argv[1], "reorder_a.dmg")) {
-    pumi_mesh_setShape(mesh,pumi_shape_getSerendipity());
+    //pumi_mesh_setShape(mesh,pumi_shape_getSerendipity());
   }
   else{
-    pumi_mesh_setShape(mesh,pumi_shape_getLagrange(2));
+    //pumi_mesh_setShape(mesh,pumi_shape_getLagrange(2));
   }
   pumi_mesh_print(mesh);
 
@@ -124,27 +124,12 @@ int main(int argc, char** argv)
   // Generate the region contributions
   it = mesh->begin(2);
   while ((e = mesh->iterate(it))){
-    Q8(e, all_contributions, numbering);
+    //Q8(e, all_contributions, numbering);
+    region_routine(mesh, e, numbering, all_contributions);
   }
   mesh->end(it);
   printf("Generated region contributions\n");
 
-
-
-  it = mesh->begin(0);
-  while ((e = mesh->iterate(it))){
-    if(!pumi_node_isNumbered(numbering,e,0,0)){
-      printf("not numbered 1 \n");
-    }
-  }
-  mesh->end(it);
-  it = mesh->begin(1);
-  while ((e = mesh->iterate(it))){
-    if(!pumi_node_isNumbered(numbering,e,0,0)){
-      printf("not numbered 2 \n");
-    }
-  }
-  mesh->end(it);
 
 
 

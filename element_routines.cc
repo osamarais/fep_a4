@@ -225,23 +225,6 @@ bool reorder_verts(Adjacent &adjacent){
   return false;
 }
 
-
-contribution region_routine(pMesh mesh, pMeshEnt e, std::vector<contribution> &region_contributions){
-  //contribution region_contribution;
-  switch (get_element_type(mesh,e)) {
-    case 0:
-    printf("      Unrecognised element!!!!!!!!!!!\n");
-    break;
-    case 1:
-    printf("Constant Strain Triangle Element\n");
-    //const_str_tri(e, region_contributions);
-    break;
-    default:
-    printf("      Unknown Error in Element routine!!!!!!!!!!\n");
-    break;
-  }
-}
-
 // Element routine for T3
 void T3(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering numbering){
   int id = pumi_ment_getID(e);
@@ -642,12 +625,7 @@ for (int i = 0; i < 6; i++){
 }
 }
 
-
-
-
-
-
-// Element routine for T3
+// Element routine for Q4
 void Q4(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering numbering){
   int id = pumi_ment_getID(e);
   printf("\n\n\n\nRegion %d:\n\n",id);
@@ -838,8 +816,7 @@ void Q4(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering 
   }
 }
 
-
-
+// Element routine for Q8
 void Q8(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering numbering){
   int id = pumi_ment_getID(e);
   printf("\n\n\n\nRegion %d:\n\n",id);
@@ -1101,6 +1078,35 @@ void Q8(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering 
       printf("Column%d \n", c.column);
       printf("contribution coefficient %f \n", c.coefficient);
     }
+  }
+}
+
+
+contribution region_routine(pMesh mesh, pMeshEnt e, pNumbering numbering, std::vector<contribution> &region_contributions){
+  //contribution region_contribution;
+  switch (get_element_type(mesh,e)) {
+    case 0:
+    printf("      Unrecognised element!!!!!!!!!!!\n");
+    break;
+    case 1:
+    printf("T3\n");
+    T3(e, region_contributions, numbering);
+    break;
+    case 2:
+    printf("T6\n");
+    T6(e, region_contributions, numbering);
+    break;
+    case 3:
+    printf("Q4\n");
+    Q4(e, region_contributions, numbering);
+    break;
+    case 4:
+    printf("Q8\n");
+    Q8(e, region_contributions, numbering);
+    break;
+    default:
+    printf("      Unknown Error in Element routine!!!!!!!!!!\n");
+    break;
   }
 }
 
