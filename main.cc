@@ -121,7 +121,7 @@ int main(int argc, char** argv)
   // Generate the region contributions
   it = mesh->begin(2);
   while ((e = mesh->iterate(it))){
-    Q4(e, all_contributions, numbering);
+    Q8(e, all_contributions, numbering);
   }
   mesh->end(it);
   printf("Generated region contributions\n");
