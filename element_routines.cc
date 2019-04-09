@@ -19,8 +19,6 @@ struct boundary_struct{
 
 
 
-void const_str_tri(pMeshEnt e);
-
 // Minimum requirements are 3 sided and 4 sided Linear and Quaratic Elements
 
 // The type of elements in the mesh must be identified. Functions for that are placed here
