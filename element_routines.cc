@@ -844,8 +844,8 @@ void Q8(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering 
   int id = pumi_ment_getID(e);
   printf("\n\n\n\nRegion %d:\n\n",id);
   // Get global coordinates
-  Adjacent adjacent;
-  pumi_ment_getAdjacent(e,0,adjacente);
+  Adjacent adjacentv;
+  pumi_ment_getAdjacent(e,0,adjacentv);
   double coord1[3];
   double coord2[3];
   double coord3[3];
@@ -947,7 +947,7 @@ void Q8(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering 
   // Use 2 point quadrature
   double Wi[2] = {1.0,1.0};
   double ui[2] = {0.577350269,-0.577350269};
-  double result[4][4] = {0};
+  double result[8][8] = {0};
 
 
   // Note: two loops required for quadrature
@@ -960,6 +960,8 @@ void Q8(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering 
       // Jacobian
       // del
 
+      // Jacobian is the same as the Q4 element since the elements are subparametric and have linear edges
+
 
       // pg 299 Bickford
       double J[2][2] = {0};
@@ -968,11 +970,14 @@ void Q8(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering 
       {{((coord3[0]-coord2[0])+(coord4[0]-coord1[0]))/4,((coord3[0]-coord2[0])-(coord4[0]-coord1[0]))/4,0},
       {((coord3[1]-coord2[1])+(coord4[1]-coord1[1]))/4,((coord3[1]-coord2[1])-(coord4[1]-coord1[1]))/4,0}}};
       // Bickford pg 309
-      double del[4][2] = {0};
-      double del_analytical[4][2][3] = {{{-1.0/4,0,1.0/4},{-1.0/4,1.0/4,0}},
-      {{1.0/4,0,-1.0/4},{-1.0/4,-1.0/4,0}},
-      {{1.0/4,0,1.0/4},{1.0/4,1.0/4,0}},
-      {{-1.0/4,0,-1.0/4},{1.0/4,-1.0/4,0}}};
+      double del[8][2] = {  {(1-ui[t])*(2*ui[s]+ui[t])/4 , (1-ui[s])*(ui[s]+2*ui[t])/4},
+                            {(1-ui[t])*(2*ui[s]-ui[t])/4 , (1+ui[s])*(-ui[s]+2*ui[t])/4},
+                            {(1+ui[t])*(2*ui[s]+ui[t])/4 , (1+ui[s])*(ui[s]+2*ui[t])/4},
+                            {(1+ui[t])*(2*ui[s]-ui[t])/4 , (1-ui[s])*(-ui[s]+2*ui[t])/4},
+                            {-ui[s]*(1-ui[t]) , -(1-ui[s]*ui[s])/2},
+                            {(1-ui[t]*ui[t])/2 , -ui[t]*(1+ui[s])},
+                            {-ui[s]*(1+ui[t]) , (1-ui[s]*ui[s])/2},
+                            {-(1-ui[t]*ui[t])/2 , -ui[t]*(1-ui[s])}  };
 
       // Calculate J and del at the quadrature point
       for (int i = 0; i < 2; i++){
@@ -980,35 +985,9 @@ void Q8(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering 
           J[i][j] = J_analytical[i][j][0] + ui[s]*J_analytical[i][j][1] + ui[t]*J_analytical[i][j][2];
         }
       }
-      for (int i = 0; i < 4; i++){
-        for (int j = 0; j < 2; j++){
-          del[i][j] = del_analytical[i][j][0] + ui[s]*del_analytical[i][j][1] + ui[t]*del_analytical[i][j][2];
-        }
-      }
 
 
 
-      // FIX ALL INDICES FOR MULTIPLICATION ETC
-      for (int i = 0; i < 2; i++){
-        for (int j = 0; j < 2; j++){
-          printf("J %f \n", J[i][j]);
-        }
-      }
-      for (int i = 0; i < 2; i++){
-        for (int j = 0; j < 2; j++){
-          printf("J_analytical 1 %f \n", J_analytical[i][j][0]);
-        }
-      }
-      for (int i = 0; i < 2; i++){
-        for (int j = 0; j < 2; j++){
-          printf("J_analytical 2 %f \n", J_analytical[i][j][1]);
-        }
-      }
-      for (int i = 0; i < 2; i++){
-        for (int j = 0; j < 2; j++){
-          printf("J_analytical 3 %f \n", J_analytical[i][j][2]);
-        }
-      }
 
 
 
@@ -1023,78 +1002,100 @@ void Q8(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering 
       Jin[0][1] = -J[0][1]/(J[1][1]*J[0][0]-J[1][0]*J[0][1]);
       for (int i = 0; i < 2; i++){
         for (int j = 0; j < 2; j++){
-          printf("Jin %f \n", Jin[i][j]);
+          //printf("Jin %f \n", Jin[i][j]);
         }
       }
       for (int i = 0; i < 2; i++){
         for (int j = 0; j < 2; j++){
           J1[i][j] = Jin[0][i]*Jin[0][j];
-          printf("J1 %f \n", J1[i][j]);
+          //printf("J1 %f \n", J1[i][j]);
         }
       }
       for (int i = 0; i < 2; i++){
         for (int j = 0; j < 2; j++){
           J2[i][j] = Jin[1][i]*Jin[1][j];
-          printf("J2 %f \n", J2[i][j]);
+          //printf("J2 %f \n", J2[i][j]);
         }
       }
       for (int i = 0; i < 2; i++){
         for (int j = 0; j < 2; j++){
           JJ[i][j] = (J1[i][j]+J2[i][j])*(J[1][1]*J[0][0]-J[1][0]*J[0][1]);
-          printf("JJ %f \n", JJ[i][j]);
+          //printf("JJ %f \n", JJ[i][j]);
         }
       }
 
       // Create delT matrix
-      double delT[2][4] = {0};
-      for (int i = 0; i < 4; i++){
+      double delT[2][8] = {0};
+      for (int i = 0; i < 8; i++){
         for (int j = 0; j < 2; j++){
           delT[j][i] = del[i][j];
-          printf("delT matrix i %d j %d    %f\n", i,j,del[i][j]);
+          //printf("delT matrix i %d j %d    %f\n", i,j,del[i][j]);
         }
       }
 
 
-      double delJJ[4][2] = {0};
-      for (int i = 0; i < 4; i++){
+      double delJJ[8][2] = {0};
+      for (int i = 0; i < 8; i++){
         for (int j = 0; j < 2; j++){
           for (int k = 0; k < 2; k++){
             delJJ[i][j] += del[i][k]*JJ[k][j];
-            printf("delJJ i %d j %d    %f \n",i,j,delJJ[i][j]);
+            //printf("delJJ i %d j %d    %f \n",i,j,delJJ[i][j]);
           }
         }
       }
       // Create matrix for quadrature point
-      double delJJdelT[4][4] = {0};
-      for (int i = 0; i < 4; i++){
-        for (int j = 0; j < 4; j++){
+      double delJJdelT[8][8] = {0};
+      for (int i = 0; i < 8; i++){
+        for (int j = 0; j < 8; j++){
           for (int k = 0; k < 2; k++){
             delJJdelT[i][j] += delJJ[i][k]*delT[k][j];
           }
         }
       }
-      for (int i = 0; i < 4; i++){
-        for (int j = 0; j < 4; j++){
+      for (int i = 0; i < 8; i++){
+        for (int j = 0; j < 8; j++){
           result[i][j] += delJJdelT[i][j]*Wi[s]*Wi[t];
         }
       }
       // add to result matrix
-
+      // print result matrix
+      for (int i = 0; i < 8; i++){
+        printf("result     %d", i);
+        for (int j = 0; j < 8; j++){
+          printf(" %2.2f ", result[i][j]);
+        }
+        printf("\n");
+      }
     }
   }
 
 
 
   // Now simply assemble the contribution and push it back
-  for (int i = 0; i < 4; i++){
-    for (int j = 0; j < 4; j++){
+  for (int i = 0; i < 8; i++){
+    for (int j = 0; j < 8; j++){
       contribution c;
       c.coefficient = result[i][j];
       c.known = 0;
+      // Need to get the proper IDs of the nodes!!!
+      if (i<4){
+        //c.row = pumi_ment_getID(adjacentv[i]);
+        c.row = pumi_node_getNumber (numbering, adjacentv[i]);
+      }
+      else{
+        //c.row = pumi_ment_getID(sharededges[i-3]);
+        c.row = pumi_node_getNumber (numbering, sharededges[i-4]);
+      }
+      if (j<4){
+        c.column = pumi_node_getNumber (numbering, adjacentv[j]);
+        //pumi_node_getNumber (numbering, adjacentv[j]);
+      }
+      else{
+        //c.column = pumi_ment_getID(sharededges[j-3]);
+        c.column = pumi_node_getNumber (numbering, sharededges[j-4]);
+      }
       //c.row = pumi_ment_getID(adjacent[i]);
       //c.column = pumi_ment_getID(adjacent[j]);
-      c.row = pumi_node_getNumber (numbering, adjacent[i]);
-      c.column = pumi_node_getNumber (numbering, adjacent[j]);
       region_contributions.push_back(c);
       printf("Row %d \n", c.row);
       printf("Column%d \n", c.column);
