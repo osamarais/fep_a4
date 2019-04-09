@@ -121,10 +121,10 @@ int main(int argc, char** argv)
   // Generate the region contributions
   it = mesh->begin(2);
   while ((e = mesh->iterate(it))){
-    lin_str_tri(e, all_contributions, numbering);
+    T3(e, all_contributions, numbering);
   }
   mesh->end(it);
-  //printf("Generated region contributions\n");
+  printf("Generated region contributions\n");
 
 
 
