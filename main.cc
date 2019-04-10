@@ -27,7 +27,6 @@ int main(int argc, char** argv)
     return 0;
   }
 
-
   // Load the files passed
   MPI_Init(&argc,&argv);
   pumi_start();
@@ -35,12 +34,12 @@ int main(int argc, char** argv)
   pMesh mesh = pumi_mesh_load(geom,argv[2],1);
 
   // Convert some mesh to Lagrange or Serendipity
-  if(!strcmp (argv[1], "reorder_a.dmg")) {
-    pumi_mesh_setShape(mesh,pumi_shape_getSerendipity());
-  }
-  else{
+  //if(!strcmp (argv[1], "reorder_a.dmg")) {
+    //pumi_mesh_setShape(mesh,pumi_shape_getSerendipity());
+  //}
+  //else{
     pumi_mesh_setShape(mesh,pumi_shape_getLagrange(2));
-  }
+  //}
   pumi_mesh_print(mesh);
 
 
