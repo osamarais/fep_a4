@@ -1193,7 +1193,7 @@ void edge_routine(pMesh mesh, boundary_struct edge, pNumbering numbering, std::v
     double a[2][2] = {0};
     a[0][0] = len/12*(alpha*3 + alpha);
     a[0][1] = len/12*(alpha + alpha);
-    a[1][1] = len/12*(alpha + alpha);
+    a[1][0] = len/12*(alpha + alpha);
     a[1][1] = len/12*(alpha + 3*alpha);
 
     double he = edge.second;

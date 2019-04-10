@@ -36,10 +36,10 @@ int main(int argc, char** argv)
 
   // Convert some mesh to Lagrange or Serendipity
   if(!strcmp (argv[1], "reorder_a.dmg")) {
-    pumi_mesh_setShape(mesh,pumi_shape_getSerendipity());
+    //pumi_mesh_setShape(mesh,pumi_shape_getSerendipity());
   }
   else{
-    pumi_mesh_setShape(mesh,pumi_shape_getLagrange(2));
+    //pumi_mesh_setShape(mesh,pumi_shape_getLagrange(2));
   }
   pumi_mesh_print(mesh);
 
@@ -238,8 +238,8 @@ BC natural_BC(int boundary_number){
   BC BCn;
   switch (boundary_number) {
     case 0:
-    BCn.first = 0.5;
-    BCn.second = 0.8;
+    BCn.first = 1;
+    BCn.second = 0;
     return BCn;
 
     case 1:
