@@ -19,6 +19,8 @@ string.h
 -
 iostream
 -
+cmath
+-
 reorder.cc
 /home/osama/Desktop/project/reorder.cc
 element_routines.cc

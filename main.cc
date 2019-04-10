@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <iostream>
-##include <cmath>
+#include <cmath>
 using namespace std;
 #include "reorder.cc"
 #include "element_routines.cc"
@@ -133,6 +133,12 @@ int main(int argc, char** argv)
   }
   mesh->end(it);
   printf("Generated region contributions\n");
+
+  // Loop over all the boundaries to get the contributions
+  for (int i = 0; i < boundary_edges.size(); i++){
+    edge_routine(mesh, boundary_edges[i], numbering, all_contributions);
+  }
+  printf("Generated edge contributions \n");
 
 
 

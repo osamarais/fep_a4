@@ -994,13 +994,13 @@ void Q8(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering 
       {((coord3[1]-coord2[1])+(coord4[1]-coord1[1]))/4,((coord3[1]-coord2[1])-(coord4[1]-coord1[1]))/4,0}}};
       // Bickford pg 309
       double del[8][2] = {  {(1-ui[t])*(2*ui[s]+ui[t])/4 , (1-ui[s])*(ui[s]+2*ui[t])/4},
-                            {(1-ui[t])*(2*ui[s]-ui[t])/4 , (1+ui[s])*(-ui[s]+2*ui[t])/4},
-                            {(1+ui[t])*(2*ui[s]+ui[t])/4 , (1+ui[s])*(ui[s]+2*ui[t])/4},
-                            {(1+ui[t])*(2*ui[s]-ui[t])/4 , (1-ui[s])*(-ui[s]+2*ui[t])/4},
-                            {-ui[s]*(1-ui[t]) , -(1-ui[s]*ui[s])/2},
-                            {(1-ui[t]*ui[t])/2 , -ui[t]*(1+ui[s])},
-                            {-ui[s]*(1+ui[t]) , (1-ui[s]*ui[s])/2},
-                            {-(1-ui[t]*ui[t])/2 , -ui[t]*(1-ui[s])}  };
+      {(1-ui[t])*(2*ui[s]-ui[t])/4 , (1+ui[s])*(-ui[s]+2*ui[t])/4},
+      {(1+ui[t])*(2*ui[s]+ui[t])/4 , (1+ui[s])*(ui[s]+2*ui[t])/4},
+      {(1+ui[t])*(2*ui[s]-ui[t])/4 , (1-ui[s])*(-ui[s]+2*ui[t])/4},
+      {-ui[s]*(1-ui[t]) , -(1-ui[s]*ui[s])/2},
+      {(1-ui[t]*ui[t])/2 , -ui[t]*(1+ui[s])},
+      {-ui[s]*(1+ui[t]) , (1-ui[s]*ui[s])/2},
+      {-(1-ui[t]*ui[t])/2 , -ui[t]*(1-ui[s])}  };
 
       // Calculate J and del at the quadrature point
       for (int i = 0; i < 2; i++){
@@ -1166,9 +1166,7 @@ contribution region_routine(pMesh mesh, pMeshEnt e, pNumbering numbering, std::v
 
 
 // Edge routine for boundaries
-// Inputs: one edge at a time, and the vecotr of assembly contributions
-// Outputs
-void edge_routine(pMesh mesh, boundary_struct edge, pNumbering numbering, std::vector<contribution> &region_contributions){
+void edge_routine(pMesh mesh, boundary_struct edge, pNumbering numbering, std::vector<contribution> &edge_contributions){
   //Hughes pg. 109
   // Get the boundary number using the already defined function
   // Apply the proper quadrature at that boundary and create the contributions
@@ -1191,14 +1189,132 @@ void edge_routine(pMesh mesh, boundary_struct edge, pNumbering numbering, std::v
   if (!hasNode(mesh,edge.e)){
     // Use linear function quadrature to get the edge contribution
     // Bickford pg.256-7
+    double alpha = edge.first;
     double a[2][2] = {0};
-    a[0][0] = len/12*(edge.first);
+    a[0][0] = len/12*(alpha*3 + alpha);
+    a[0][1] = len/12*(alpha + alpha);
+    a[1][1] = len/12*(alpha + alpha);
+    a[1][1] = len/12*(alpha + 3*alpha);
+
+    double he = edge.second;
+    double h[2] = {0};
+    h[0] = len/6*(2*he+he);
+    h[1] = len/6*(he+2*he);
+    // Push back right here to remain in scope
+    for (int i = 0; i < 2; i++){
+      for (int j = 0; j < 2; j++){
+        contribution c;
+        c.coefficient = a[i][j];
+        c.known = 0;
+        //c.row = pumi_ment_getID(adjacent[i]);
+        //c.column = pumi_ment_getID(adjacent[j]);
+        c.row = pumi_node_getNumber (numbering, adjacent[i]);
+        c.column = pumi_node_getNumber (numbering, adjacent[j]);
+        edge_contributions.push_back(c);
+        printf("Row %d ", c.row);
+        printf("Column %d ", c.column);
+        printf("contribution coefficient %f \n", c.coefficient);
+      }
+    }
+    // push back coefficients
+    for (int i = 0; i < 2; i++){
+      contribution c;
+      c.coefficient = 0;
+      c.known = h[i];
+      //c.row = pumi_ment_getID(adjacent[i]);
+      //c.column = pumi_ment_getID(adjacent[j]);
+      c.row = pumi_node_getNumber (numbering, adjacent[i]);
+      c.column = 0;
+      edge_contributions.push_back(c);
+      printf("Row %d ", c.row);
+      printf("known %f \n", c.known);
+    }
+
+
+
   }
   else {
     // Use quadratic function quadrature
     // Bickford pg 331
-  }
+    double alpha = edge.first;
+    double a[3][3] = {0};
+    a[0][0] = len/420*(alpha*39 + alpha*20 - alpha*3);
+    a[0][1] = len/420*(alpha*20 + alpha*16 - alpha*8);
+    a[0][2] = len/420*(-alpha*3 -alpha*8 - alpha*3);
 
+    a[1][0] = len/420*(alpha*20 + alpha*16 - alpha*8);
+    a[1][1] = len/420*(alpha*16 + alpha*192 + alpha*16);
+    a[1][2] = len/420*(-alpha*8 + alpha*16 + alpha*20);
+
+    a[2][0] = len/420*(-alpha*3 -alpha*8 - alpha*3);
+    a[2][1] = len/420*(-alpha*8 + alpha*16 + alpha*20);
+    a[2][2] = len/420*(-alpha*3 + alpha*20 + alpha*39);
+
+    double he = edge.second;
+    double h[3] = {0};
+    h[0] = len/30*(4*he+2*he-he);
+    h[1] = len/30*(2*he+16*he+2*he);
+    h[2] = len/30*(-he+2*he+4*he);
+
+    for (int i = 0; i < 3; i++){
+      for (int j = 0; j < 3; j++){
+        contribution c;
+        c.coefficient = a[i][j];
+        c.known = 0;
+        //c.row = pumi_ment_getID(adjacent[i]);
+        //c.column = pumi_ment_getID(adjacent[j]);
+        if (1==i){
+          c.row = pumi_node_getNumber (numbering, edge.e);
+        }
+        else if (2==i){
+          c.row = pumi_node_getNumber (numbering, adjacent[i-1]);
+        }
+        else {
+          c.row = pumi_node_getNumber (numbering, adjacent[i]);
+        }
+        if (1==j){
+          c.column = pumi_node_getNumber (numbering, edge.e);
+        }
+        else if(2==j){
+          c.column = pumi_node_getNumber (numbering, adjacent[j-1]);
+        }
+        else {
+          c.column = pumi_node_getNumber (numbering, adjacent[j]);
+        }
+        //c.column = pumi_node_getNumber (numbering, adjacent[j]);
+        edge_contributions.push_back(c);
+        printf("Row %d ", c.row);
+        printf("Column %d ", c.column);
+        printf("contribution coefficient %f \n", c.coefficient);
+      }
+    }
+
+    for (int i = 0; i < 3; i++){
+      contribution c;
+      c.coefficient = 0;
+      c.known = h[i];
+      //c.row = pumi_ment_getID(adjacent[i]);
+      //c.column = pumi_ment_getID(adjacent[j]);
+      if (1==i){
+        c.row = pumi_node_getNumber (numbering, edge.e);
+      }
+      else if (2==i){
+        c.row = pumi_node_getNumber (numbering, adjacent[i-1]);
+      }
+      else {
+        c.row = pumi_node_getNumber (numbering, adjacent[i]);
+      }
+      c.column = 0;
+
+      //c.column = pumi_node_getNumber (numbering, adjacent[j]);
+      edge_contributions.push_back(c);
+      printf("Row %d ", c.row);
+      printf("known %f \n", c.known);
+      //printf("Row %d \n", c.row);
+      //printf("Column%d \n", c.column);
+      //printf("contribution coefficient %f \n", c.coefficient);
+    }
+  }
 }
 
 
