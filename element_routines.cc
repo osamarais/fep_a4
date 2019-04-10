@@ -354,6 +354,13 @@ void T3(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering 
       }
     }
   }
+
+  // Generate the forcing vector
+  //double f[3] = {0};
+
+
+
+
   // Now simply assemble the contribution and push it back
   for (int i = 0; i < 3; i++){
     for (int j = 0; j < 3; j++){

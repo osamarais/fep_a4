@@ -141,6 +141,30 @@ int main(int argc, char** argv)
   printf("Generated edge contributions \n");
 
 
+  // Enforce the esesntial boundary conditions
+
+
+
+  // Generate the global stiffness matrix
+  // Generate the vector of knowns
+  int m = pumi_numbering_getNumNode(numbering);
+  double A[m][m] = {0};
+  double b[m] = {0};
+  for (int i = 0; i < all_contributions.size(); i++){
+    A[all_contributions[i].row-1][all_contributions[i].column-1] += all_contributions[i].coefficient;
+    b[all_contributions[i].row-1] += all_contributions[i].known;
+  }
+
+  // print the global stiffness matrix
+  for (int i = 0; i < m; i++){
+    printf("Row %d ", i);
+    for (int j = 0; j < m; j++){
+      printf(" %3.2f ", A[i][j]);
+    }
+    printf("\n");
+  }
+
+
 
 
 
