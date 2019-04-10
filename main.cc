@@ -36,10 +36,10 @@ int main(int argc, char** argv)
 
   // Convert some mesh to Lagrange or Serendipity
   if(!strcmp (argv[1], "reorder_a.dmg")) {
-    //pumi_mesh_setShape(mesh,pumi_shape_getSerendipity());
+    pumi_mesh_setShape(mesh,pumi_shape_getSerendipity());
   }
   else{
-    //pumi_mesh_setShape(mesh,pumi_shape_getLagrange(2));
+    pumi_mesh_setShape(mesh,pumi_shape_getLagrange(2));
   }
   pumi_mesh_print(mesh);
 
@@ -163,6 +163,8 @@ int main(int argc, char** argv)
     }
     printf("\n");
   }
+
+  // Check the symmetry of the system
 
 
 
