@@ -55,12 +55,12 @@ pNumbering reorder(pMesh &mesh, pMeshEnt &startingvertex){
   pNumbering facenum = pumi_numbering_create(mesh,"myfacenumbering",myfaceshape);
 
   // First get the total number of nodes
-  int labelnode = 1;
+  int labelnode = 0;
   labelnode += (pumi_shape_getNumNode(myshape, 0) * pumi_mesh_getNumEnt(mesh,0));
   labelnode += (pumi_shape_getNumNode(myshape, 1) * pumi_mesh_getNumEnt(mesh,1));
   printf("The total number of nodes is %d\n", labelnode-1);
   // Now get the total number of faces since we will be labelling them also
-  int labelface = pumi_mesh_getNumEnt(mesh,2) + 1;
+  int labelface = pumi_mesh_getNumEnt(mesh,2);
   //printf("The total number of faces is %d\n", labelface-1);
   // Create the queue and the list
   std::deque<pMeshEnt> myq;

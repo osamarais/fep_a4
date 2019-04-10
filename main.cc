@@ -68,7 +68,7 @@ int main(int argc, char** argv)
   pMeshIter it = mesh->begin(2);
   while ((e = mesh->iterate(it))){
     int element_type = get_element_type(mesh,e);
-    printf("The element type is %d\n", element_type);
+    //printf("The element type is %d\n", element_type);
   }
   mesh->end(it);
 
@@ -115,12 +115,12 @@ int main(int argc, char** argv)
     Adjacent adjacent;
     pumi_ment_getAdjacent(e,0,adjacent);
     if(reorder_verts(adjacent)){
-      printf("Mesh needs reordering \n");
+      printf("                   Vertices need reordering \n");
       return 0;
     }
   }
   mesh->end(it);
-  printf(" Mesh vertices do not need reordering\n");
+  printf("Vertices do not need reordering\n");
 
 
   // Now we are ready generate the contributions
@@ -151,8 +151,8 @@ int main(int argc, char** argv)
   double A[m][m] = {0};
   double b[m] = {0};
   for (int i = 0; i < all_contributions.size(); i++){
-    A[all_contributions[i].row-1][all_contributions[i].column-1] += all_contributions[i].coefficient;
-    b[all_contributions[i].row-1] += all_contributions[i].known;
+    A[all_contributions[i].row][all_contributions[i].column] += all_contributions[i].coefficient;
+    b[all_contributions[i].row] += all_contributions[i].known;
   }
 
   // print the global stiffness matrix
@@ -165,6 +165,17 @@ int main(int argc, char** argv)
   }
 
   // Check the symmetry of the system
+  for (int i = 0; i < m; i++){
+    for (int j = 0; j < m; j++){
+      //printf(" %.10f \n", A[i][j]-A[j][i]);
+      if (A[i][j]-A[j][i] > 0.00000001){
+        printf("                              Global Stiffnesss matrix is NOT symmetrical \n");
+        printf("row %d column %d \n", i,j);
+        return 0;
+      }
+    }
+    //printf("\n");
+  }
 
 
 

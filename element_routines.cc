@@ -1143,19 +1143,19 @@ contribution region_routine(pMesh mesh, pMeshEnt e, pNumbering numbering, std::v
     printf("      Unrecognised element!!!!!!!!!!!\n");
     break;
     case 1:
-    printf("T3\n");
+    //printf("T3\n");
     T3(e, region_contributions, numbering);
     break;
     case 2:
-    printf("T6\n");
+    //printf("T6\n");
     T6(e, region_contributions, numbering);
     break;
     case 3:
-    printf("Q4\n");
+    //printf("Q4\n");
     Q4(e, region_contributions, numbering);
     break;
     case 4:
-    printf("Q8\n");
+    //printf("Q8\n");
     Q8(e, region_contributions, numbering);
     break;
     default:
@@ -1217,9 +1217,9 @@ void edge_routine(pMesh mesh, boundary_struct edge, pNumbering numbering, std::v
         c.row = pumi_node_getNumber (numbering, adjacent[i]);
         c.column = pumi_node_getNumber (numbering, adjacent[j]);
         edge_contributions.push_back(c);
-        printf("Row %d ", c.row);
-        printf("Column %d ", c.column);
-        printf("contribution coefficient %f \n", c.coefficient);
+        //printf("Row %d ", c.row);
+        //printf("Column %d ", c.column);
+        //printf("contribution coefficient %f \n", c.coefficient);
       }
     }
     // push back coefficients
@@ -1232,8 +1232,8 @@ void edge_routine(pMesh mesh, boundary_struct edge, pNumbering numbering, std::v
       c.row = pumi_node_getNumber (numbering, adjacent[i]);
       c.column = 0;
       edge_contributions.push_back(c);
-      printf("Row %d ", c.row);
-      printf("known %f \n", c.known);
+      //printf("Row %d ", c.row);
+      //printf("known %f \n", c.known);
     }
 
 
@@ -1289,9 +1289,9 @@ void edge_routine(pMesh mesh, boundary_struct edge, pNumbering numbering, std::v
         }
         //c.column = pumi_node_getNumber (numbering, adjacent[j]);
         edge_contributions.push_back(c);
-        printf("Row %d ", c.row);
-        printf("Column %d ", c.column);
-        printf("contribution coefficient %f \n", c.coefficient);
+        //printf("Row %d ", c.row);
+        //printf("Column %d ", c.column);
+        //printf("contribution coefficient %f \n", c.coefficient);
       }
     }
 
@@ -1314,8 +1314,8 @@ void edge_routine(pMesh mesh, boundary_struct edge, pNumbering numbering, std::v
 
       //c.column = pumi_node_getNumber (numbering, adjacent[j]);
       edge_contributions.push_back(c);
-      printf("Row %d ", c.row);
-      printf("known %f \n", c.known);
+      //printf("Row %d ", c.row);
+      //printf("known %f \n", c.known);
       //printf("Row %d \n", c.row);
       //printf("Column%d \n", c.column);
       //printf("contribution coefficient %f \n", c.coefficient);
