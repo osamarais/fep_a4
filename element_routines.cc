@@ -267,7 +267,6 @@ bool reorder_verts(Adjacent &adjacent){
 }
 
 
-//                        Add forcing contributors to the element routines                           //
 // Element routine for T3
 void T3(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering numbering){
   int id = pumi_ment_getID(e);
