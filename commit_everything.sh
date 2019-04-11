@@ -1,3 +1,3 @@
 git add ./*
-git commit -m "Checked global stiffness matrix, is symmetrical, verified, Q8 not verified"
+git commit -m "Global stiffness matrix is symmetrical, Q8 not verified"
 git push -u origin master

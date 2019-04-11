@@ -34,12 +34,12 @@ int main(int argc, char** argv)
   pMesh mesh = pumi_mesh_load(geom,argv[2],1);
 
   // Convert some mesh to Lagrange or Serendipity
-  //if(!strcmp (argv[1], "reorder_a.dmg")) {
-    //pumi_mesh_setShape(mesh,pumi_shape_getSerendipity());
-  //}
-  //else{
+  if(!strcmp (argv[1], "reorder_a.dmg")) {
+    pumi_mesh_setShape(mesh,pumi_shape_getSerendipity());
+  }
+  else{
     pumi_mesh_setShape(mesh,pumi_shape_getLagrange(2));
-  //}
+  }
   pumi_mesh_print(mesh);
 
 
@@ -82,13 +82,8 @@ int main(int argc, char** argv)
   // Print the boundary numbers
   for (std::vector<boundary_struct>::iterator it = boundary_edges.begin(); it!= boundary_edges.end(); ++it){
     boundary_struct this_edge = *it;
-    printf("Edge is on face %d \n", this_edge.boundary);
+    //printf("Edge is on face %d \n", this_edge.boundary);
   }
-
-
-
-
-
 
   // Get all the boundary vertices
   std::vector<boundary_struct> boundary_verts;
@@ -96,7 +91,7 @@ int main(int argc, char** argv)
   // Now print all the boundary nodes
   for (std::vector<boundary_struct>::iterator it = boundary_verts.begin(); it!= boundary_verts.end(); ++it){
     boundary_struct this_vert = *it;
-    printf("Vertex %d is on %d \n", pumi_node_getNumber(numbering, this_vert.e), this_vert.boundary);
+    //printf("Vertex %d is on %d \n", pumi_node_getNumber(numbering, this_vert.e), this_vert.boundary);
   }
   // Try to find which boundary something is on
   std::vector<int> list;
@@ -104,7 +99,7 @@ int main(int argc, char** argv)
   pMeshEnt ment = pumi_mesh_findEnt(mesh,0,tofind);
   get_bound_num(ment, boundary_verts, list);
   for (int i = 0; i< list.size(); i++){
-    printf("The vertex %d is on %d\n",tofind,list[i]);
+    //printf("The vertex %d is on %d\n",tofind,list[i]);
   }
 
 
@@ -133,28 +128,30 @@ int main(int argc, char** argv)
   mesh->end(it);
   printf("Generated region contributions\n");
 
-  // Loop over all the boundaries to get the contributions
+  // Loop over all the boundary edges to get the contributions
+  /*
   for (int i = 0; i < boundary_edges.size(); i++){
     edge_routine(mesh, boundary_edges[i], numbering, all_contributions);
   }
   printf("Generated edge contributions \n");
-
-
-  // Enforce the esesntial boundary conditions
+  */
 
 
 
-  // Generate the global stiffness matrix
+  // Generate the global stiffness matrix and the b vector
   // Generate the vector of knowns
   int m = pumi_numbering_getNumNode(numbering);
-  double A[m][m] = {0};
-  double b[m] = {0};
+  printf("Total number of nodes is %d \n", m);
+  double A[m][m] = {};
+  double b[m] = {};
   for (int i = 0; i < all_contributions.size(); i++){
     A[all_contributions[i].row][all_contributions[i].column] += all_contributions[i].coefficient;
-    b[all_contributions[i].row] += all_contributions[i].known;
+    //printf("the coefficient is %f \n", all_contributions[i].coefficient);
+    //b[all_contributions[i].row] += all_contributions[i].known;
   }
 
   // print the global stiffness matrix
+  /*
   for (int i = 0; i < m; i++){
     printf("Row %d ", i);
     for (int j = 0; j < m; j++){
@@ -162,6 +159,7 @@ int main(int argc, char** argv)
     }
     printf("\n");
   }
+  */
 
   // Check the symmetry of the system
   for (int i = 0; i < m; i++){
@@ -174,6 +172,12 @@ int main(int argc, char** argv)
       }
     }
     //printf("\n");
+  }
+
+
+  // Check the known vector
+  for (int i = 0; i < m; i++){
+    //printf("row %d   known  %f \n", i, b[i]);
   }
 
 
@@ -195,7 +199,7 @@ int main(int argc, char** argv)
 
   pumi_finalize();
   MPI_Finalize();
-  cout << "End of Program\n";
+  cout << "                                   End of Program\n";
 }
 
 /*
@@ -274,13 +278,13 @@ BC natural_BC(int boundary_number){
   BC BCn;
   switch (boundary_number) {
     case 0:
-    BCn.first = 1;
-    BCn.second = 0;
+    BCn.first = 0;
+    BCn.second = 1;
     return BCn;
 
     case 1:
-    BCn.first = 0.5;
-    BCn.second = 0.8;
+    BCn.first = 0;
+    BCn.second = 0;
     return BCn;
 
     default:

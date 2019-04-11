@@ -171,7 +171,7 @@ void get_all_boundary_nodes(pMesh &mesh, std::vector<boundary_struct> &boundary_
       // if flag is still false, add the vertex
       if (!found){
         mesh_ents.push_back(this_vert);
-        printf("Vertex %d has been added \n", pumi_ment_getID(this_vert.e));
+        //printf("Vertex %d has been added \n", pumi_ment_getID(this_vert.e));
       }
     }
   }
@@ -300,11 +300,11 @@ void T3(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering 
     }
   }
   // Get JJ Matrix
-  double JJ[2][2] = {0};
+  double JJ[2][2] = {};
   // J inverse
-  double Jin[2][2] = {0};
-  double J1[2][2] = {0};
-  double J2[2][2] = {0};
+  double Jin[2][2] = {};
+  double J1[2][2] = {};
+  double J2[2][2] = {};
   Jin[0][0] = J[1][1]/(J[1][1]*J[0][0]-J[1][0]*J[0][1]);
   Jin[1][1] = J[0][0]/(J[1][1]*J[0][0]-J[1][0]*J[0][1]);
   Jin[1][0] = -J[1][0]/(J[1][1]*J[0][0]-J[1][0]*J[0][1]);
@@ -336,7 +336,7 @@ void T3(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering 
   // Create Del Matrices and Multiply
   double del[3][2] = {{1,0},{0,1},{-1,-1}};
   double delT[2][3] = {{1,0,-1},{0,1,-1}};
-  double delJJ[3][2] = {0};
+  double delJJ[3][2] = {};
   for (int i = 0; i < 3; i++){
     for (int j = 0; j < 2; j++){
       for (int k = 0; k < 2; k++){
@@ -346,7 +346,7 @@ void T3(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering 
     }
   }
   // Create complete matrix, and also do integral (divide by 2)
-  double delJJdelT[3][3] = {0};
+  double delJJdelT[3][3] = {};
   for (int i = 0; i < 3; i++){
     for (int j = 0; j < 3; j++){
       for (int k = 0; k < 2; k++){
@@ -356,7 +356,7 @@ void T3(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering 
   }
 
   // Generate the forcing vector
-  //double f[3] = {0};
+  //double f[3] = {};
 
 
 
@@ -386,9 +386,9 @@ void T6(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering 
   //printf("\n\n\n\nRegion %d:\n\n",id);
   Adjacent adjacentv;
   pumi_ment_getAdjacent(e,0,adjacentv);
-  double coord1[3] = {0};
-  double coord2[3] = {0};
-  double coord3[3] = {0};
+  double coord1[3] = {};
+  double coord2[3] = {};
+  double coord3[3] = {};
   pumi_node_getCoord(adjacentv[0], 0, coord1);
   pumi_node_getCoord(adjacentv[1], 0, coord2);
   pumi_node_getCoord(adjacentv[2], 0, coord3);
@@ -401,9 +401,9 @@ void T6(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering 
   printf("y vertex 3 %f\n", coord3[1]);
   */
   // Get coordinates of the edge nodes in proper ordering
-  double coord4[3] = {0};
-  double coord5[3] = {0};
-  double coord6[3] = {0};
+  double coord4[3] = {};
+  double coord5[3] = {};
+  double coord6[3] = {};
   // loop over the vertices
   // get the shared edge
   // get the node on the shared edge
@@ -484,12 +484,12 @@ void T6(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering 
   {{4,-8,-4},{0,-4,0}},
   {{0,0,4},{0,4,0}},
   {{0,0,-4},{4,-4,-8}} };
-  double result[6][6] = {0};
+  double result[6][6] = {};
   // calculate the numerical del matrix etc. using the three point quadrature
   // Loop for the three points and then sum up the resulting 6*6 matrix
   for (int l = 0; l < 3; l++){
     //printf("Quadrature %d\n", l);
-    double del[6][2] = {0};
+    double del[6][2] = {};
     for (int i = 0; i < 6; i++){
       for (int j = 0; j < 2; j++){
         // Calculate matrix for this particular quadrature point
@@ -510,7 +510,7 @@ void T6(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering 
 
 
     // transpose del matrix
-    double delT[2][6] = {0};
+    double delT[2][6] = {};
     for (int i = 0; i < 6; i++){
       for (int j = 0; j < 2; j++){
         delT[j][i] = del[i][j];
@@ -542,11 +542,11 @@ for (int i = 0; i < 2; i++){
   }
 }
 // Get JJ Matrix
-double JJ[2][2] = {0};
+double JJ[2][2] = {};
 // J inverse
-double Jin[2][2] = {0};
-double J1[2][2] = {0};
-double J2[2][2] = {0};
+double Jin[2][2] = {};
+double J1[2][2] = {};
+double J2[2][2] = {};
 Jin[0][0] = J[1][1]/(J[1][1]*J[0][0]-J[1][0]*J[0][1]);
 Jin[1][1] = J[0][0]/(J[1][1]*J[0][0]-J[1][0]*J[0][1]);
 Jin[1][0] = -J[1][0]/(J[1][1]*J[0][0]-J[1][0]*J[0][1]);
@@ -579,7 +579,7 @@ for (int i = 0; i < 2; i++){
 
 
 
-double delJJ[6][2] = {0};
+double delJJ[6][2] = {};
 for (int i = 0; i < 6; i++){
   for (int j = 0; j < 2; j++){
     for (int k = 0; k < 2; k++){
@@ -604,7 +604,7 @@ printf("\n");
 // Create complete matrix, and also do integral (divide by 2) and use weight
 //  (taking advantage of the common weight for all of them!!!!)
 // Also multiply by the Jacobian
-double delJJdelT[6][6] = {0};
+double delJJdelT[6][6] = {};
 for (int i = 0; i < 6; i++){
   for (int j = 0; j < 6; j++){
     for (int k = 0; k < 2; k++){
@@ -709,7 +709,7 @@ void Q4(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering 
   // Use 2 point quadrature
   double Wi[2] = {1.0,1.0};
   double ui[2] = {0.577350269,-0.577350269};
-  double result[4][4] = {0};
+  double result[4][4] = {};
 
 
   // Note: two loops required for quadrature
@@ -724,13 +724,13 @@ void Q4(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering 
 
 
       // pg 299 Bickford
-      double J[2][2] = {0};
+      double J[2][2] = {};
       double J_analytical[2][2][3] = {{{((coord2[0]-coord1[0])+(coord3[0]-coord4[0]))/4,0,(-(coord2[0]-coord1[0])+(coord3[0]-coord4[0]))/4},
       {((coord2[1]-coord1[1])+(coord3[1]-coord4[1]))/4,0,(-(coord2[1]-coord1[1])+(coord3[1]-coord4[1]))/4}},
       {{((coord3[0]-coord2[0])+(coord4[0]-coord1[0]))/4,((coord3[0]-coord2[0])-(coord4[0]-coord1[0]))/4,0},
       {((coord3[1]-coord2[1])+(coord4[1]-coord1[1]))/4,((coord3[1]-coord2[1])-(coord4[1]-coord1[1]))/4,0}}};
       // Bickford pg 309
-      double del[4][2] = {0};
+      double del[4][2] = {};
       double del_analytical[4][2][3] = {{{-1.0/4,0,1.0/4},{-1.0/4,1.0/4,0}},
       {{1.0/4,0,-1.0/4},{-1.0/4,-1.0/4,0}},
       {{1.0/4,0,1.0/4},{1.0/4,1.0/4,0}},
@@ -775,10 +775,10 @@ void Q4(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering 
 
 
       // Get JJ Matrix
-      double JJ[2][2] = {0};
-      double Jin[2][2] = {0};
-      double J1[2][2] = {0};
-      double J2[2][2] = {0};
+      double JJ[2][2] = {};
+      double Jin[2][2] = {};
+      double J1[2][2] = {};
+      double J2[2][2] = {};
       Jin[0][0] = J[1][1]/(J[1][1]*J[0][0]-J[1][0]*J[0][1]);
       Jin[1][1] = J[0][0]/(J[1][1]*J[0][0]-J[1][0]*J[0][1]);
       Jin[1][0] = -J[1][0]/(J[1][1]*J[0][0]-J[1][0]*J[0][1]);
@@ -808,7 +808,7 @@ void Q4(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering 
       }
 
       // Create delT matrix
-      double delT[2][4] = {0};
+      double delT[2][4] = {};
       for (int i = 0; i < 4; i++){
         for (int j = 0; j < 2; j++){
           delT[j][i] = del[i][j];
@@ -817,7 +817,7 @@ void Q4(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering 
       }
 
 
-      double delJJ[4][2] = {0};
+      double delJJ[4][2] = {};
       for (int i = 0; i < 4; i++){
         for (int j = 0; j < 2; j++){
           for (int k = 0; k < 2; k++){
@@ -827,7 +827,7 @@ void Q4(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering 
         }
       }
       // Create matrix for quadrature point
-      double delJJdelT[4][4] = {0};
+      double delJJdelT[4][4] = {};
       for (int i = 0; i < 4; i++){
         for (int j = 0; j < 4; j++){
           for (int k = 0; k < 2; k++){
@@ -902,10 +902,10 @@ void Q8(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering 
   ////////////////////////////////////////////////////////////////////
   // Get the rest of the vertices using the T6 algorithm
   // Get coordinates of the edge nodes in proper ordering
-  double coord5[3] = {0};
-  double coord6[3] = {0};
-  double coord7[3] = {0};
-  double coord8[3] = {0};
+  double coord5[3] = {};
+  double coord6[3] = {};
+  double coord7[3] = {};
+  double coord8[3] = {};
   // loop over the vertices
   // get the shared edge
   // get the node on the shared edge
@@ -976,7 +976,7 @@ void Q8(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering 
   // Use 2 point quadrature
   double Wi[2] = {1.0,1.0};
   double ui[2] = {0.577350269,-0.577350269};
-  double result[8][8] = {0};
+  double result[8][8] = {};
 
 
   // Note: two loops required for quadrature
@@ -993,7 +993,7 @@ void Q8(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering 
 
 
       // pg 299 Bickford
-      double J[2][2] = {0};
+      double J[2][2] = {};
       double J_analytical[2][2][3] = {{{((coord2[0]-coord1[0])+(coord3[0]-coord4[0]))/4,0,(-(coord2[0]-coord1[0])+(coord3[0]-coord4[0]))/4},
       {((coord2[1]-coord1[1])+(coord3[1]-coord4[1]))/4,0,(-(coord2[1]-coord1[1])+(coord3[1]-coord4[1]))/4}},
       {{((coord3[0]-coord2[0])+(coord4[0]-coord1[0]))/4,((coord3[0]-coord2[0])-(coord4[0]-coord1[0]))/4,0},
@@ -1021,10 +1021,10 @@ void Q8(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering 
 
 
       // Get JJ Matrix
-      double JJ[2][2] = {0};
-      double Jin[2][2] = {0};
-      double J1[2][2] = {0};
-      double J2[2][2] = {0};
+      double JJ[2][2] = {};
+      double Jin[2][2] = {};
+      double J1[2][2] = {};
+      double J2[2][2] = {};
       Jin[0][0] = J[1][1]/(J[1][1]*J[0][0]-J[1][0]*J[0][1]);
       Jin[1][1] = J[0][0]/(J[1][1]*J[0][0]-J[1][0]*J[0][1]);
       Jin[1][0] = -J[1][0]/(J[1][1]*J[0][0]-J[1][0]*J[0][1]);
@@ -1054,7 +1054,7 @@ void Q8(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering 
       }
 
       // Create delT matrix
-      double delT[2][8] = {0};
+      double delT[2][8] = {};
       for (int i = 0; i < 8; i++){
         for (int j = 0; j < 2; j++){
           delT[j][i] = del[i][j];
@@ -1063,7 +1063,7 @@ void Q8(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering 
       }
 
 
-      double delJJ[8][2] = {0};
+      double delJJ[8][2] = {};
       for (int i = 0; i < 8; i++){
         for (int j = 0; j < 2; j++){
           for (int k = 0; k < 2; k++){
@@ -1073,7 +1073,7 @@ void Q8(pMeshEnt e, std::vector<contribution> &region_contributions, pNumbering 
         }
       }
       // Create matrix for quadrature point
-      double delJJdelT[8][8] = {0};
+      double delJJdelT[8][8] = {};
       for (int i = 0; i < 8; i++){
         for (int j = 0; j < 8; j++){
           for (int k = 0; k < 2; k++){
@@ -1196,14 +1196,14 @@ void edge_routine(pMesh mesh, boundary_struct edge, pNumbering numbering, std::v
     // Use linear function quadrature to get the edge contribution
     // Bickford pg.256-7
     double alpha = edge.first;
-    double a[2][2] = {0};
+    double a[2][2] = {};
     a[0][0] = len/12*(alpha*3 + alpha);
     a[0][1] = len/12*(alpha + alpha);
     a[1][0] = len/12*(alpha + alpha);
     a[1][1] = len/12*(alpha + 3*alpha);
 
     double he = edge.second;
-    double h[2] = {0};
+    double h[2] = {};
     h[0] = len/6*(2*he+he);
     h[1] = len/6*(he+2*he);
     // Push back right here to remain in scope
@@ -1232,8 +1232,8 @@ void edge_routine(pMesh mesh, boundary_struct edge, pNumbering numbering, std::v
       c.row = pumi_node_getNumber (numbering, adjacent[i]);
       c.column = 0;
       edge_contributions.push_back(c);
-      //printf("Row %d ", c.row);
-      //printf("known %f \n", c.known);
+      printf("Row %d ", c.row);
+      printf("known %f \n", c.known);
     }
 
 
@@ -1243,7 +1243,7 @@ void edge_routine(pMesh mesh, boundary_struct edge, pNumbering numbering, std::v
     // Use quadratic function quadrature
     // Bickford pg 331
     double alpha = edge.first;
-    double a[3][3] = {0};
+    double a[3][3] = {};
     a[0][0] = len/420*(alpha*39 + alpha*20 - alpha*3);
     a[0][1] = len/420*(alpha*20 + alpha*16 - alpha*8);
     a[0][2] = len/420*(-alpha*3 -alpha*8 - alpha*3);
@@ -1257,7 +1257,7 @@ void edge_routine(pMesh mesh, boundary_struct edge, pNumbering numbering, std::v
     a[2][2] = len/420*(-alpha*3 + alpha*20 + alpha*39);
 
     double he = edge.second;
-    double h[3] = {0};
+    double h[3] = {};
     h[0] = len/30*(4*he+2*he-he);
     h[1] = len/30*(2*he+16*he+2*he);
     h[2] = len/30*(-he+2*he+4*he);
