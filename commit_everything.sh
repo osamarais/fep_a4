@@ -1,3 +1,3 @@
 git add ./*
-git commit -m "Global stiffness matrix is symmetrical, Q8 not verified"
+git commit -m "Boundary contributions seem to work fine"
 git push -u origin master

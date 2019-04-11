@@ -91,7 +91,7 @@ int main(int argc, char** argv)
   // Now print all the boundary nodes
   for (std::vector<boundary_struct>::iterator it = boundary_verts.begin(); it!= boundary_verts.end(); ++it){
     boundary_struct this_vert = *it;
-    //printf("Vertex %d is on %d \n", pumi_node_getNumber(numbering, this_vert.e), this_vert.boundary);
+    printf("Vertex %d is on %d \n", pumi_node_getNumber(numbering, this_vert.e), this_vert.boundary);
   }
   // Try to find which boundary something is on
   std::vector<int> list;
@@ -129,12 +129,12 @@ int main(int argc, char** argv)
   printf("Generated region contributions\n");
 
   // Loop over all the boundary edges to get the contributions
-  /*
+
   for (int i = 0; i < boundary_edges.size(); i++){
     edge_routine(mesh, boundary_edges[i], numbering, all_contributions);
   }
   printf("Generated edge contributions \n");
-  */
+
 
 
 
@@ -147,7 +147,7 @@ int main(int argc, char** argv)
   for (int i = 0; i < all_contributions.size(); i++){
     A[all_contributions[i].row][all_contributions[i].column] += all_contributions[i].coefficient;
     //printf("the coefficient is %f \n", all_contributions[i].coefficient);
-    //b[all_contributions[i].row] += all_contributions[i].known;
+    b[all_contributions[i].row] += all_contributions[i].known;
   }
 
   // print the global stiffness matrix
@@ -179,6 +179,8 @@ int main(int argc, char** argv)
   for (int i = 0; i < m; i++){
     //printf("row %d   known  %f \n", i, b[i]);
   }
+
+  
 
 
 
@@ -278,13 +280,13 @@ BC natural_BC(int boundary_number){
   BC BCn;
   switch (boundary_number) {
     case 0:
-    BCn.first = 0;
+    BCn.first = 1;
     BCn.second = 1;
     return BCn;
 
-    case 1:
-    BCn.first = 0;
-    BCn.second = 0;
+    case 6:
+    BCn.first = 1;
+    BCn.second = 1;
     return BCn;
 
     default:
