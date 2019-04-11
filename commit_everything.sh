@@ -1,3 +1,3 @@
 git add ./*
-git commit -m "Boundary contributions seem to work fine"
+git commit -m "Trying to include PetSc"
 git push -u origin master

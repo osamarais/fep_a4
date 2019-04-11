@@ -9,6 +9,7 @@ using namespace std;
 #include "element_routines.cc"
 #include "matrix_assembly.cc"
 #include "postprocessing_routines.cc"
+//#include <petscksp.h>
 
 
 //double boundary_conditions(pMeshEnt e);
@@ -91,7 +92,7 @@ int main(int argc, char** argv)
   // Now print all the boundary nodes
   for (std::vector<boundary_struct>::iterator it = boundary_verts.begin(); it!= boundary_verts.end(); ++it){
     boundary_struct this_vert = *it;
-    printf("Vertex %d is on %d \n", pumi_node_getNumber(numbering, this_vert.e), this_vert.boundary);
+    //printf("Vertex %d is on %d \n", pumi_node_getNumber(numbering, this_vert.e), this_vert.boundary);
   }
   // Try to find which boundary something is on
   std::vector<int> list;
@@ -153,55 +154,78 @@ int main(int argc, char** argv)
   // print the global stiffness matrix
   /*
   for (int i = 0; i < m; i++){
-    printf("Row %d ", i);
-    for (int j = 0; j < m; j++){
-      printf(" %3.2f ", A[i][j]);
+  printf("Row %d ", i);
+  for (int j = 0; j < m; j++){
+  printf(" %3.2f ", A[i][j]);
+}
+printf("\n");
+}
+*/
+
+// Check the symmetry of the system
+for (int i = 0; i < m; i++){
+  for (int j = 0; j < m; j++){
+    //printf(" %.10f \n", A[i][j]-A[j][i]);
+    if (A[i][j]-A[j][i] > 0.00000001){
+      printf("                              Global Stiffnesss matrix is NOT symmetrical \n");
+      printf("row %d column %d \n", i,j);
+      return 0;
     }
-    printf("\n");
   }
-  */
-
-  // Check the symmetry of the system
-  for (int i = 0; i < m; i++){
-    for (int j = 0; j < m; j++){
-      //printf(" %.10f \n", A[i][j]-A[j][i]);
-      if (A[i][j]-A[j][i] > 0.00000001){
-        printf("                              Global Stiffnesss matrix is NOT symmetrical \n");
-        printf("row %d column %d \n", i,j);
-        return 0;
-      }
-    }
-    //printf("\n");
-  }
+  //printf("\n");
+}
 
 
-  // Check the known vector
-  for (int i = 0; i < m; i++){
-    //printf("row %d   known  %f \n", i, b[i]);
-  }
+// Check the known vector
+for (int i = 0; i < m; i++){
+  //printf("row %d   known  %f \n", i, b[i]);
+}
 
-  
+// Enforce the dirichlet boundary condition to make node 0 = 1;
+A[0][0] = 1;
+b[0] = 1;
+for (int i = 1; i < m; i++){
+  A[0][i] = 0;
+}
 
+// print the global stiffness matrix
+/*
+for (int i = 0; i < m; i++){
+printf("Row %d ", i);
+for (int j = 0; j < m; j++){
+printf(" %3.2f ", A[i][j]);
+}
+printf("\n");
+}
+*/
 
-
-
-
-
-
-  // Use some library to solve the assembled matrix
-
-
-  // Now run some code to generate the secondary variables and assign them to some field
-
-
-  // Visualize the solution with Paraview directly if possible
+// Check the known vector
+for (int i = 0; i < m; i++){
+  printf("row %d   known  %f \n", i, b[i]);
+}
 
 
 
 
-  pumi_finalize();
-  MPI_Finalize();
-  cout << "                                   End of Program\n";
+
+
+
+
+
+// Use some library to solve the assembled matrix
+
+
+// Now run some code to generate the secondary variables and assign them to some field
+
+
+// Visualize the solution with Paraview directly if possible
+
+
+
+
+pumi_finalize();
+MPI_Finalize();
+cout << "                                   End of Program\n";
 }
 
 /*
@@ -301,40 +325,40 @@ BC natural_BC(int boundary_number){
 // Old BC Structure
 /*
 std::pair<bool,double> essential_BC(int boundary_number){
-  // simply return the known
-  std::pair<bool,double> BC;
-  BC.first = true;
-  switch (boundary_number) {
-    case 0:
-    BC.first = false;
-    BC.second = 0;
-    return BC;
-    default:
+// simply return the known
+std::pair<bool,double> BC;
+BC.first = true;
+switch (boundary_number) {
+case 0:
+BC.first = false;
+BC.second = 0;
+return BC;
+default:
 
-    BC.first = false;
-    BC.second = 0;
-    return BC;
-  }
+BC.first = false;
+BC.second = 0;
+return BC;
+}
 }
 
 std::pair<double,double> natural_BC(int boundary_number){
-  // push back alpha and then h (coefficeient and then known)
-  std::pair<double,double> BC;
-  switch (boundary_number) {
-    case 0:
-    BC.first = 0.5;
-    BC.second = 0.8;
-    return BC;
+// push back alpha and then h (coefficeient and then known)
+std::pair<double,double> BC;
+switch (boundary_number) {
+case 0:
+BC.first = 0.5;
+BC.second = 0.8;
+return BC;
 
-    case 1:
-    BC.first = 0.5;
-    BC.second = 0.8;
-    return BC;
+case 1:
+BC.first = 0.5;
+BC.second = 0.8;
+return BC;
 
-    default:
-    BC.first = 0;
-    BC.second = 0;
-    return BC;
-  }
+default:
+BC.first = 0;
+BC.second = 0;
+return BC;
+}
 }
 */
