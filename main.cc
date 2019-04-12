@@ -137,14 +137,25 @@ int main(int argc, char** argv)
 
 
 
-/*
+
+
   // Enforce the dirichlet boundary conditions
-  for (int i = 0; i < m; i++){
-    //A(0,i) = 0;
+
+  for (std::vector<boundary_struct>::iterator it = boundary_verts.begin(); it!= boundary_verts.end(); ++it){
+    boundary_struct this_vert = *it;
+    //printf("Vertex %d is on face %d \n", pumi_node_getNumber(numbering, this_vert.e), this_vert.boundary);
+    BC essential = essential_BC(this_edge.boundary, this_edge.e, numbering);
+    if(essential.first){
+      int rcn = pumi_numbering_getNumNode(numbering);
+      A(rcn,rcn) = 1000000000000000;
+      b(rcn) = 1000000000000000*BC.second;
+    }
+
   }
-  A(0,0) = 100000000000000000;
-  b(0) = 100000000000000000;
-*/
+
+
+
+
 
 
 
@@ -191,32 +202,44 @@ int main(int argc, char** argv)
 // Define the essential boundary condition using the face it is classified on
 BC essential_BC(int boundary_number, pMeshEnt e, pNumbering numbering){
   BC BCe;
-  int number = pumi_node_getNumber (numbering, e);
   BCe.first = 1;
 
   // Use this to enforce essential boundary conditions on a face
   switch (boundary_number) {
     case 0:
-    BCe.second = 0;
+    BCe.second = 1;
+    return BCe;
+    case 2:
+    BCe.second = -1;
+    return BCe;
+    case 6:
+    BCe.second = 1;
+    return BCe;
+    case 16:
+    BCe.second = -1;
     return BCe;
 
+
     default:
-    BCe.first = -1;
+    BCe.first = 0;
     BCe.second = 0;
     return BCe;
   }
 
   // Use this to enforce essential boundary conditions on specific nodes
+  /*
+  int number = pumi_node_getNumber (numbering, e);
   switch (number) {
     case 0:
     BCe.first = 0;
     BCe.second = 0;
     return BCe;
-    default:
 
+    default:
     BCe.first = 0;
     BCe.second = 0;
     return BCe;
+  */
   }
 }
 
@@ -226,6 +249,7 @@ BC natural_BC(int boundary_number){
   // push back alpha and then h (coefficeient and then known)
   BC BCn;
   switch (boundary_number) {
+    /*
     case 0:
     BCn.first = 10;
     BCn.second = 100;
@@ -246,6 +270,7 @@ BC natural_BC(int boundary_number){
     BCn.first = 10;
     BCn.second = -100;
     return BCn;
+    */
 
 
     default:
