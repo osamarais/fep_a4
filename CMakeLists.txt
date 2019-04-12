@@ -1,3 +1,4 @@
+
 #This file shows how to link to a PUMI
 #installation using CMake
 #it represents a simple 'CMakeLists.txt'
@@ -6,6 +7,17 @@
 cmake_minimum_required(VERSION 3.0.0)
 
 project(a1 VERSION 1.0.0 LANGUAGES CXX)
+
+
+# include the eigen libraries
+
+#/home/osama/Desktop/eigen-eigen-323c052e1731/Eigen
+SET( EIGEN3_INCLUDE_DIR "/home/osama/Desktop/eigen-eigen-323c052e1731/Eigen" )
+IF( NOT EIGEN3_INCLUDE_DIR )
+    MESSAGE( FATAL_ERROR "Please point the environment variable EIGEN3_INCLUDE_DIR to the include directory of your Eigen3 installation.")
+ENDIF()
+INCLUDE_DIRECTORIES ( "${EIGEN3_INCLUDE_DIR}" )
+find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 
 # Starting here are the critical lines:
 
@@ -38,4 +50,4 @@ add_executable(main main.cc)
 #the scorec libraries automatically.
 #we recommend PUBLIC if the target is a library and
 #PRIVATE if the target is an executable
-target_link_libraries(main PRIVATE SCOREC::core)
+target_link_libraries(main PRIVATE SCOREC::core Eigen3::Eigen)

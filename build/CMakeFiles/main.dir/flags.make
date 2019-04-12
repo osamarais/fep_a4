@@ -6,5 +6,5 @@ CXX_FLAGS = -g -O2
 
 CXX_DEFINES = -DHAVE_CLOCK_GETTIME
 
-CXX_INCLUDES = -isystem /usr/local/include 
+CXX_INCLUDES = -I/home/osama/Desktop/eigen-eigen-323c052e1731/Eigen -isystem /usr/local/include -isystem /usr/include/eigen3 
 

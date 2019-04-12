@@ -1,5 +1,6 @@
 #include <PCU.h>
 #include <pumi.h>
+#include <apf.h>
 #include <stdlib.h>
 #include <string.h>
 #include <iostream>
@@ -10,8 +11,8 @@ using namespace std;
 #include "matrix_assembly.cc"
 #include "postprocessing_routines.cc"
 //#include <petscksp.h>
-
-
+#include <Eigen/Dense>
+using namespace Eigen;
 //double boundary_conditions(pMeshEnt e);
 
 //std::pair<bool,double> essential_BC(int boundary_number);
@@ -36,10 +37,10 @@ int main(int argc, char** argv)
 
   // Convert some mesh to Lagrange or Serendipity
   if(!strcmp (argv[1], "reorder_a.dmg")) {
-    pumi_mesh_setShape(mesh,pumi_shape_getSerendipity());
+    //pumi_mesh_setShape(mesh,pumi_shape_getSerendipity());
   }
   else{
-    pumi_mesh_setShape(mesh,pumi_shape_getLagrange(2));
+    //pumi_mesh_setShape(mesh,pumi_shape_getLagrange(2));
   }
   pumi_mesh_print(mesh);
 
@@ -92,7 +93,7 @@ int main(int argc, char** argv)
   // Now print all the boundary nodes
   for (std::vector<boundary_struct>::iterator it = boundary_verts.begin(); it!= boundary_verts.end(); ++it){
     boundary_struct this_vert = *it;
-    //printf("Vertex %d is on %d \n", pumi_node_getNumber(numbering, this_vert.e), this_vert.boundary);
+    printf("Vertex %d is on %d \n", pumi_node_getNumber(numbering, this_vert.e), this_vert.boundary);
   }
   // Try to find which boundary something is on
   std::vector<int> list;
@@ -143,12 +144,26 @@ int main(int argc, char** argv)
   // Generate the vector of knowns
   int m = pumi_numbering_getNumNode(numbering);
   printf("Total number of nodes is %d \n", m);
-  double A[m][m] = {};
-  double b[m] = {};
+
+
+
+
+
+  MatrixXf A = MatrixXf::Zero(m, m);
+  VectorXf b = VectorXf::Zero(m);
+  VectorXf u = VectorXf::Zero(m);
+
+
+
+
+
+
+  //  double A[m][m] = {};
+  //  double b[m] = {};
   for (int i = 0; i < all_contributions.size(); i++){
-    A[all_contributions[i].row][all_contributions[i].column] += all_contributions[i].coefficient;
+    A(all_contributions[i].row,all_contributions[i].column) += all_contributions[i].coefficient;
     //printf("the coefficient is %f \n", all_contributions[i].coefficient);
-    b[all_contributions[i].row] += all_contributions[i].known;
+    b(all_contributions[i].row) += all_contributions[i].known;
   }
 
   // print the global stiffness matrix
@@ -166,7 +181,7 @@ printf("\n");
 for (int i = 0; i < m; i++){
   for (int j = 0; j < m; j++){
     //printf(" %.10f \n", A[i][j]-A[j][i]);
-    if (A[i][j]-A[j][i] > 0.00000001){
+    if (A(i,j)-A(j,i) > 0.00000001){
       printf("                              Global Stiffnesss matrix is NOT symmetrical \n");
       printf("row %d column %d \n", i,j);
       return 0;
@@ -182,10 +197,10 @@ for (int i = 0; i < m; i++){
 }
 
 // Enforce the dirichlet boundary condition to make node 0 = 1;
-A[0][0] = 1;
-b[0] = 1;
+A(0,0) = 1;
+b(0) = 1;
 for (int i = 1; i < m; i++){
-  A[0][i] = 0;
+  A(0,i) = 0;
 }
 
 // print the global stiffness matrix
@@ -200,15 +215,45 @@ printf("\n");
 */
 
 // Check the known vector
+/*
 for (int i = 0; i < m; i++){
-  printf("row %d   known  %f \n", i, b[i]);
+printf("row %d   known  %f \n", i, b(i));
 }
+*/
+
+/*
+cout << "Here is the matrix A:\n" << A << endl;
+cout << "Here is the right hand side b:\n" << b << endl;
+cout << "The Full Piv LU solution is:\n"
+<< A.fullPivLu().solve(b) << endl;
+*/
+
+u = A.partialPivLu().solve(b);
+
+// Apply the solution to the field nodes
+//pShape myshape = pumi_mesh_getShape(mesh);
+pField myfield =  pumi_field_create(mesh,"primary solution",1);
+//pumi_node_setNumber(mynum,entity,0,0,labelnode);
 
 
+  //double myvar[1] = {0.3};
+  int i = 0;
+it = mesh->begin(0);
+while ((e = mesh->iterate(it))){
+  //pumi_node_setField ( myfield, e, 1, u(pumi_node_getNumber(numbering,e)));
+  //pumi_node_setField ( myfield, e, 1, myvar);
+  double myvar[1] = {u(pumi_node_getNumber(numbering,e))};
+  apf::setScalar(myfield, e, 0, myvar[0]);
 
+  i++;
+  printf("%d \n", i);
+}
+mesh->end(it);
 
+pumi_field_freeze (myfield);
 
-
+pumi_mesh_write(mesh,argv[2],"vtk");
+cout << "Mesh file written to file\n";
 
 
 
@@ -240,11 +285,9 @@ bool boundary_condition(pMeshEnt e,std::vector<boundary_struct> &boundary_edges,
 //
 // In case the entity is an edge, simply sind its boundary,
 // perform a switch, and return the boundary condition of the entity.
-
 // Find the borders that the entity is on
 // Fill out the appropriate lists
 //  Run the appropriate boundary code for either
-
 if(list.size() != 0){
 // If the entity is on a boundary, use the boundary number to perform a switch
 // selction and return the boundary condition
@@ -304,14 +347,20 @@ BC natural_BC(int boundary_number){
   BC BCn;
   switch (boundary_number) {
     case 0:
-    BCn.first = 1;
-    BCn.second = 1;
+    BCn.first = 0;
+    BCn.second = 0;
     return BCn;
 
     case 6:
-    BCn.first = 1;
-    BCn.second = 1;
+    BCn.first = 0;
+    BCn.second = 0;
     return BCn;
+
+    case 16:
+    BCn.first = 0;
+    BCn.second = 0;
+    return BCn;
+
 
     default:
     BCn.first = 0;
@@ -334,13 +383,11 @@ BC.first = false;
 BC.second = 0;
 return BC;
 default:
-
 BC.first = false;
 BC.second = 0;
 return BC;
 }
 }
-
 std::pair<double,double> natural_BC(int boundary_number){
 // push back alpha and then h (coefficeient and then known)
 std::pair<double,double> BC;
@@ -349,12 +396,10 @@ case 0:
 BC.first = 0.5;
 BC.second = 0.8;
 return BC;
-
 case 1:
 BC.first = 0.5;
 BC.second = 0.8;
 return BC;
-
 default:
 BC.first = 0;
 BC.second = 0;

@@ -15,7 +15,9 @@ set(CMAKE_TARGET_DEFINITIONS_CXX
 
 # The include file search paths:
 set(CMAKE_CXX_TARGET_INCLUDE_PATH
+  "/home/osama/Desktop/eigen-eigen-323c052e1731/Eigen"
   "/usr/local/include"
+  "/usr/include/eigen3"
   )
 
 # Targets to which this target links.

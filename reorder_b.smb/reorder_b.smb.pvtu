@@ -4,7 +4,9 @@
 <PDataArray type="Float64" Name="coordinates" NumberOfComponents="3" format="binary"/>
 </PPoints>
 <PPointData>
+<PDataArray type="Float64" Name="primary solution" NumberOfComponents="1" format="binary"/>
 <PDataArray type="Int32" Name="mynewnumbering" NumberOfComponents="1" format="binary"/>
+<PDataArray type="Int32" Name="Linear" NumberOfComponents="1" format="binary"/>
 </PPointData>
 <PCellData>
 <PDataArray type="Float64" Name="ghost_field_1" NumberOfComponents="1" format="binary"/>
