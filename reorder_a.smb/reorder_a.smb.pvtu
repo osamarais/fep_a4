@@ -6,7 +6,7 @@
 <PPointData>
 <PDataArray type="Float64" Name="Primary Solution" NumberOfComponents="1" format="binary"/>
 <PDataArray type="Int32" Name="Reordered Nodes" NumberOfComponents="1" format="binary"/>
-<PDataArray type="Int32" Name="Linear" NumberOfComponents="1" format="binary"/>
+<PDataArray type="Int32" Name="Serendipity Quadratic" NumberOfComponents="1" format="binary"/>
 </PPointData>
 <PCellData>
 <PDataArray type="Float64" Name="ghost_field_1" NumberOfComponents="1" format="binary"/>

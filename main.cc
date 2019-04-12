@@ -15,7 +15,7 @@ using namespace Eigen;
 
 int main(int argc, char** argv)
 {
-  bool isproblemquadratic = false;
+  bool isproblemquadratic = true;
   // Check if files have been passed properly
   if (argc != 3) {
     printf("usage: %s dmg_file.dmg smb_file_without_0.smb\n", argv[0]);
@@ -144,13 +144,12 @@ int main(int argc, char** argv)
   for (std::vector<boundary_struct>::iterator it = boundary_verts.begin(); it!= boundary_verts.end(); ++it){
     boundary_struct this_vert = *it;
     //printf("Vertex %d is on face %d \n", pumi_node_getNumber(numbering, this_vert.e), this_vert.boundary);
-    BC essential = essential_BC(this_edge.boundary, this_edge.e, numbering);
+    BC essential = essential_BC(this_vert.boundary, this_vert.e, numbering);
     if(essential.first){
-      int rcn = pumi_numbering_getNumNode(numbering);
-      A(rcn,rcn) = 1000000000000000;
-      b(rcn) = 1000000000000000*BC.second;
+      int rcn = pumi_node_getNumber (numbering, this_vert.e);
+      A(rcn,rcn) = 100000000000000;
+      b(rcn) = essential.second*100000000000000;
     }
-
   }
 
 
@@ -239,8 +238,10 @@ BC essential_BC(int boundary_number, pMeshEnt e, pNumbering numbering){
     BCe.first = 0;
     BCe.second = 0;
     return BCe;
-  */
   }
+  */
+
+
 }
 
 
