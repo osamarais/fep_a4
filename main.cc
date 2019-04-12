@@ -10,13 +10,8 @@ using namespace std;
 #include "element_routines.cc"
 #include "matrix_assembly.cc"
 #include "postprocessing_routines.cc"
-//#include <petscksp.h>
 #include <Eigen/Dense>
 using namespace Eigen;
-//double boundary_conditions(pMeshEnt e);
-
-//std::pair<bool,double> essential_BC(int boundary_number);
-//std::pair<double,double> natural_BC(int boundary_number);
 
 int main(int argc, char** argv)
 {
@@ -48,7 +43,7 @@ int main(int argc, char** argv)
   // Get all the boundary edges
   std::vector<boundary_struct> boundary_edges;
   get_all_boundary_edges(geom,mesh, boundary_edges);
-  // Print the boundary numbers
+  // Print all the faces the boundary edges are on
   for (std::vector<boundary_struct>::iterator it = boundary_edges.begin(); it!= boundary_edges.end(); ++it){
     boundary_struct this_edge = *it;
     //printf("Edge is on face %d \n", this_edge.boundary);
@@ -56,7 +51,7 @@ int main(int argc, char** argv)
   // Get all the boundary vertices
   std::vector<boundary_struct> boundary_verts;
   get_all_boundary_nodes(mesh, boundary_edges, boundary_verts, numbering);
-  // Now print all the boundary nodes
+  // Print all the faces the boundary vertices are on
   for (std::vector<boundary_struct>::iterator it = boundary_verts.begin(); it!= boundary_verts.end(); ++it){
     boundary_struct this_vert = *it;
     printf("Vertex %d is on face %d \n", pumi_node_getNumber(numbering, this_vert.e), this_vert.boundary);
@@ -71,6 +66,7 @@ int main(int argc, char** argv)
   }
 
   // Check if all the vertices are being returned in clockwise order
+  // Return error if violated
   pMeshIter it;
   pMeshEnt e;
   it = mesh->begin(2);
@@ -86,7 +82,7 @@ int main(int argc, char** argv)
   printf("Vertices do not need reordering\n");
 
 
-  // Now we are ready generate the contributions
+  // Generate all the elemental stiffness matrices
   std::vector<contribution> all_contributions;
   // Generate the region contributions
   it = mesh->begin(2);
@@ -136,6 +132,9 @@ int main(int argc, char** argv)
   }
 
 
+  // If a mixed boundary condition has not been specified,
+  // essential boundary conditions may need to be enforced
+
 
 
 /*
@@ -146,6 +145,10 @@ int main(int argc, char** argv)
   A(0,0) = 100000000000000000;
   b(0) = 100000000000000000;
 */
+
+
+
+
   // Solve the system
   u = A.partialPivLu().solve(b);
 
@@ -177,63 +180,33 @@ int main(int argc, char** argv)
   printf("Mesh file written to file\n");
   pumi_finalize();
   MPI_Finalize();
-  printf("                                   End of Program\n");
+  printf("End of Program\n");
 }
 
-/*
-// Define the boundary conditions of the problem here
-// pass a node or and edhe to get its boundary condition
-bool boundary_condition(pMeshEnt e,std::vector<boundary_struct> &boundary_edges,std::vector<boundary_struct> &boundary_verts){
-// Check the type of the entity
-// If the entity is a vertex iterate, find its boundaries.
-// Iterate over the list and perform switch on all the elements, fill out a vector.
-// In case the length of the vetor is 2, give an error that two conditions have been defined on the boundary.
-// If not, simply fill out the boundary condition
-//
-// In case the entity is an edge, simply sind its boundary,
-// perform a switch, and return the boundary condition of the entity.
-// Find the borders that the entity is on
-// Fill out the appropriate lists
-//  Run the appropriate boundary code for either
-if(list.size() != 0){
-// If the entity is on a boundary, use the boundary number to perform a switch
-// selction and return the boundary condition
-}
-else{
-// If nothing is found, print out the error message and abort
-printf("\n ELEMENT IS NOT ON A BOUNDARY!!! \n");
-}
-}
-*/
 
 
 
+// Simple definitions of boundaries using faces.
 
-
-
-// Simple definitions of boundaries.
-
-// Define the essential boundary condition using either the local ID or the boundary number
+// Define the essential boundary condition using the face it is classified on
 BC essential_BC(int boundary_number, pMeshEnt e, pNumbering numbering){
-  // simply return the known
   BC BCe;
-  //int localid = pumi_ment_getID(e);
-  // get id of the field node using the numbering
   int number = pumi_node_getNumber (numbering, e);
-
   BCe.first = 1;
+
+  // Use this to enforce essential boundary conditions on a face
   switch (boundary_number) {
     case 0:
-    BCe.first = 0;
     BCe.second = 0;
     return BCe;
-    default:
 
-    BCe.first = 0;
+    default:
+    BCe.first = -1;
     BCe.second = 0;
     return BCe;
   }
 
+  // Use this to enforce essential boundary conditions on specific nodes
   switch (number) {
     case 0:
     BCe.first = 0;
@@ -248,7 +221,7 @@ BC essential_BC(int boundary_number, pMeshEnt e, pNumbering numbering){
 }
 
 
-// Define natural boundary condition using the boundary number
+// Define natural boundary condition using the face it is classified on
 BC natural_BC(int boundary_number){
   // push back alpha and then h (coefficeient and then known)
   BC BCn;
@@ -281,109 +254,3 @@ BC natural_BC(int boundary_number){
     return BCn;
   }
 }
-
-
-
-// Old BC Structure
-/*
-std::pair<bool,double> essential_BC(int boundary_number){
-// simply return the known
-std::pair<bool,double> BC;
-BC.first = true;
-switch (boundary_number) {
-case 0:
-BC.first = false;
-BC.second = 0;
-return BC;
-default:
-BC.first = false;
-BC.second = 0;
-return BC;
-}
-}
-std::pair<double,double> natural_BC(int boundary_number){
-// push back alpha and then h (coefficeient and then known)
-std::pair<double,double> BC;
-switch (boundary_number) {
-case 0:
-BC.first = 0.5;
-BC.second = 0.8;
-return BC;
-case 1:
-BC.first = 0.5;
-BC.second = 0.8;
-return BC;
-default:
-BC.first = 0;
-BC.second = 0;
-return BC;
-}
-}
-*/
-
-
-
-
-
-/*
-
-// Check the element type routine, if it is working
-pMeshEnt e;
-pMeshIter it = mesh->begin(2);
-while ((e = mesh->iterate(it))){
-int element_type = get_element_type(mesh,e);
-//printf("The element type is %d\n", element_type);
-}
-mesh->end(it);
-
-
-
-
-*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-for (int i = 0; i < m; i++){
-//A(0,i) = 0;
-}
-A(5,5) = 10000;
-b(5) = -10000;
-*/
-// print the global stiffness matrix
-/*
-for (int i = 0; i < m; i++){
-printf("Row %d ", i);
-for (int j = 0; j < m; j++){
-printf(" %3.2f ", A[i][j]);
-}
-printf("\n");
-}
-*/
-
-// Check the known vector
-/*
-for (int i = 0; i < m; i++){
-printf("row %d   known  %f \n", i, b(i));
-}
-*/
-
-/*
-cout << "Here is the matrix A:\n" << A << endl;
-cout << "Here is the right hand side b:\n" << b << endl;
-cout << "The Full Piv LU solution is:\n"
-<< A.fullPivLu().solve(b) << endl;
-*/

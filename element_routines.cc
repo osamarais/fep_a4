@@ -1164,13 +1164,6 @@ contribution region_routine(pMesh mesh, pMeshEnt e, pNumbering numbering, std::v
   }
 }
 
-// Also implement the forcing contribution
-
-
-// Now need to implement the edge boundary conditions and the essential boundary conditon enforcer
-// This will be done using the boundary conditions vectors that we have created.
-
-
 // Edge routine for boundaries
 void edge_routine(pMesh mesh, boundary_struct edge, pNumbering numbering, std::vector<contribution> &edge_contributions){
   //Hughes pg. 109
@@ -1322,13 +1315,3 @@ void edge_routine(pMesh mesh, boundary_struct edge, pNumbering numbering, std::v
     }
   }
 }
-
-
-
-// Force Contributor (face)
-
-// Constrain a node
-
-
-
-//

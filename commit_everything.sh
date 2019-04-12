@@ -1,3 +1,3 @@
 git add ./*
-git commit -m "Checked solution. Working fine, getting reasonable results."
+git commit -m "Cleaned up code a little bit"
 git push -u origin master

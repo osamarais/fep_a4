@@ -2,10 +2,6 @@
 #include <queue>
 // This file contains functions to reorder the mesh, with headers in the header file
 
-
-
-
-
 pMeshEnt getStart(pMesh &mesh, pGeom &g){
   pGeomEnt mystartg;
   int minedgesyet = 0;
@@ -35,17 +31,6 @@ pMeshEnt getStart(pMesh &mesh, pGeom &g){
   return myreversevector[0];
   //printf("Got the starting vertex\n");
 }
-
-
-
-
-
-
-
-
-
-
-
 
 pNumbering reorder(pMesh &mesh, pMeshEnt &startingvertex){
   pShape myshape = pumi_mesh_getShape(mesh);
@@ -190,8 +175,6 @@ pNumbering reorder(pMesh &mesh, pMeshEnt &startingvertex){
   return mynum;
 }
 
-
-
 pNumbering reorder_mesh(pMesh mesh, pGeom geom){
   pMeshEnt startingvertex = getStart(mesh,geom);
   pNumbering numbering;
@@ -199,11 +182,6 @@ pNumbering reorder_mesh(pMesh mesh, pGeom geom){
   return numbering;
 }
 
-
-
-
-
-bool hasNode(pMesh m, pMeshEnt e)
-{
+bool hasNode(pMesh m, pMeshEnt e){
   return pumi_shape_hasNode(pumi_mesh_getShape(m),pumi_ment_getTopo(e));
 }
