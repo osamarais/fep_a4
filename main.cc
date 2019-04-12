@@ -20,64 +20,31 @@ using namespace Eigen;
 
 int main(int argc, char** argv)
 {
-
-  //////////////////// Startup code. ////////////////
-
+  bool isproblemquadratic = false;
   // Check if files have been passed properly
   if (argc != 3) {
     printf("usage: %s dmg_file.dmg smb_file_without_0.smb\n", argv[0]);
     return 0;
   }
-
   // Load the files passed
   MPI_Init(&argc,&argv);
   pumi_start();
   pGeom geom = pumi_geom_load(argv[1],"mesh");
   pMesh mesh = pumi_mesh_load(geom,argv[2],1);
-
-  // Convert some mesh to Lagrange or Serendipity
-  if(!strcmp (argv[1], "reorder_a.dmg")) {
-    //pumi_mesh_setShape(mesh,pumi_shape_getSerendipity());
+  if (isproblemquadratic){
+    // Convert some mesh to Lagrange or Serendipity
+    if(!strcmp (argv[1], "reorder_a.dmg")) {
+      pumi_mesh_setShape(mesh,pumi_shape_getSerendipity());
+    }
+    else{
+      pumi_mesh_setShape(mesh,pumi_shape_getLagrange(2));
+    }
   }
-  else{
-    //pumi_mesh_setShape(mesh,pumi_shape_getLagrange(2));
-  }
-  pumi_mesh_print(mesh);
-
-
-
-  // Inform that files have successfully been loaded
   printf("\nMesh and Geometry Successfully loaded\n");
-  // Write this mesh file for debugging purposes
-  pumi_mesh_write(mesh,"originalmesh","vtk");
-
-
-  // Now that the mesh files have successfully been loaded, reorder them
+  // Reorder mesh
   pNumbering numbering;
   numbering = reorder_mesh(mesh,geom);
-  cout << "Completed reordering\n";
-  pumi_mesh_write(mesh,argv[2],"vtk");
-  cout << "Mesh file written to file\n";
-
-
-
-
-
-
-  // Check the element type routine, if it is working
-  pMeshEnt e;
-  pMeshIter it = mesh->begin(2);
-  while ((e = mesh->iterate(it))){
-    int element_type = get_element_type(mesh,e);
-    //printf("The element type is %d\n", element_type);
-  }
-  mesh->end(it);
-
-
-
-
-
-
+  printf("Completed reordering\n");
   // Get all the boundary edges
   std::vector<boundary_struct> boundary_edges;
   get_all_boundary_edges(geom,mesh, boundary_edges);
@@ -86,16 +53,15 @@ int main(int argc, char** argv)
     boundary_struct this_edge = *it;
     //printf("Edge is on face %d \n", this_edge.boundary);
   }
-
   // Get all the boundary vertices
   std::vector<boundary_struct> boundary_verts;
   get_all_boundary_nodes(mesh, boundary_edges, boundary_verts, numbering);
   // Now print all the boundary nodes
   for (std::vector<boundary_struct>::iterator it = boundary_verts.begin(); it!= boundary_verts.end(); ++it){
     boundary_struct this_vert = *it;
-    printf("Vertex %d is on %d \n", pumi_node_getNumber(numbering, this_vert.e), this_vert.boundary);
+    printf("Vertex %d is on face %d \n", pumi_node_getNumber(numbering, this_vert.e), this_vert.boundary);
   }
-  // Try to find which boundary something is on
+  // Try to find which boundary an entity is on (pass the appropriate list)
   std::vector<int> list;
   int tofind = 0;
   pMeshEnt ment = pumi_mesh_findEnt(mesh,0,tofind);
@@ -104,8 +70,9 @@ int main(int argc, char** argv)
     //printf("The vertex %d is on %d\n",tofind,list[i]);
   }
 
-
-  // Check is redordering is required
+  // Check if all the vertices are being returned in clockwise order
+  pMeshIter it;
+  pMeshEnt e;
   it = mesh->begin(2);
   while ((e = mesh->iterate(it))){
     Adjacent adjacent;
@@ -124,14 +91,11 @@ int main(int argc, char** argv)
   // Generate the region contributions
   it = mesh->begin(2);
   while ((e = mesh->iterate(it))){
-    //Q8(e, all_contributions, numbering);
     region_routine(mesh, e, numbering, all_contributions);
   }
   mesh->end(it);
   printf("Generated region contributions\n");
-
-  // Loop over all the boundary edges to get the contributions
-
+  // Generate boundary contributions
   for (int i = 0; i < boundary_edges.size(); i++){
     edge_routine(mesh, boundary_edges[i], numbering, all_contributions);
   }
@@ -144,133 +108,76 @@ int main(int argc, char** argv)
   // Generate the vector of knowns
   int m = pumi_numbering_getNumNode(numbering);
   printf("Total number of nodes is %d \n", m);
-
-
-
-
-
   MatrixXf A = MatrixXf::Zero(m, m);
   VectorXf b = VectorXf::Zero(m);
   VectorXf u = VectorXf::Zero(m);
-
-
-
-
-
-
-  //  double A[m][m] = {};
-  //  double b[m] = {};
+  // Assemble the Global stiffness matrix and the vector of knowns
   for (int i = 0; i < all_contributions.size(); i++){
     A(all_contributions[i].row,all_contributions[i].column) += all_contributions[i].coefficient;
     //printf("the coefficient is %f \n", all_contributions[i].coefficient);
     b(all_contributions[i].row) += all_contributions[i].known;
   }
-
-  // print the global stiffness matrix
-  /*
+  // Check the symmetry of the system
   for (int i = 0; i < m; i++){
-  printf("Row %d ", i);
-  for (int j = 0; j < m; j++){
-  printf(" %3.2f ", A[i][j]);
-}
-printf("\n");
-}
-*/
+    for (int j = 0; j < m; j++){
+      //printf(" %.10f \n", A[i][j]-A[j][i]);
+      if (A(i,j)-A(j,i) > 0.00000001){
+        printf("                              Global Stiffnesss matrix is NOT symmetrical \n");
+        printf("row %d column %d \n", i,j);
+        return 0;
+      }
+      A(i,j) = A(j,i);
+    }
+    //printf("\n");
+  }
+  // Check the known vector
+  for (int i = 0; i < m; i++){
+    //printf("row %d   known  %f \n", i, b[i]);
+  }
 
-// Check the symmetry of the system
-for (int i = 0; i < m; i++){
-  for (int j = 0; j < m; j++){
-    //printf(" %.10f \n", A[i][j]-A[j][i]);
-    if (A(i,j)-A(j,i) > 0.00000001){
-      printf("                              Global Stiffnesss matrix is NOT symmetrical \n");
-      printf("row %d column %d \n", i,j);
-      return 0;
+
+
+
+/*
+  // Enforce the dirichlet boundary conditions
+  for (int i = 0; i < m; i++){
+    //A(0,i) = 0;
+  }
+  A(0,0) = 100000000000000000;
+  b(0) = 100000000000000000;
+*/
+  // Solve the system
+  u = A.partialPivLu().solve(b);
+
+  // Apply the solution to the field nodes
+  pField myfield =  pumi_field_create(mesh,"Primary Solution",1);
+  // Apply to vertex nodes
+  it = mesh->begin(0);
+  while ((e = mesh->iterate(it))){
+    double myvar[1] = {u(pumi_node_getNumber(numbering,e))};
+    apf::setScalar(myfield, e, 0, myvar[0]);
+  }
+  mesh->end(it);
+  // Apply to edge nodes
+  it = mesh->begin(1);
+  while ((e = mesh->iterate(it))){
+    if (hasNode(mesh, e)){
+      double myvar[1] = {u(pumi_node_getNumber(numbering,e))};
+      apf::setScalar(myfield, e, 0, myvar[0]);
     }
   }
-  //printf("\n");
-}
-
-
-// Check the known vector
-for (int i = 0; i < m; i++){
-  //printf("row %d   known  %f \n", i, b[i]);
-}
-
-// Enforce the dirichlet boundary condition to make node 0 = 1;
-A(0,0) = 1;
-b(0) = 1;
-for (int i = 1; i < m; i++){
-  A(0,i) = 0;
-}
-
-// print the global stiffness matrix
-/*
-for (int i = 0; i < m; i++){
-printf("Row %d ", i);
-for (int j = 0; j < m; j++){
-printf(" %3.2f ", A[i][j]);
-}
-printf("\n");
-}
-*/
-
-// Check the known vector
-/*
-for (int i = 0; i < m; i++){
-printf("row %d   known  %f \n", i, b(i));
-}
-*/
-
-/*
-cout << "Here is the matrix A:\n" << A << endl;
-cout << "Here is the right hand side b:\n" << b << endl;
-cout << "The Full Piv LU solution is:\n"
-<< A.fullPivLu().solve(b) << endl;
-*/
-
-u = A.partialPivLu().solve(b);
-
-// Apply the solution to the field nodes
-//pShape myshape = pumi_mesh_getShape(mesh);
-pField myfield =  pumi_field_create(mesh,"primary solution",1);
-//pumi_node_setNumber(mynum,entity,0,0,labelnode);
-
-
-  //double myvar[1] = {0.3};
-  int i = 0;
-it = mesh->begin(0);
-while ((e = mesh->iterate(it))){
-  //pumi_node_setField ( myfield, e, 1, u(pumi_node_getNumber(numbering,e)));
-  //pumi_node_setField ( myfield, e, 1, myvar);
-  double myvar[1] = {u(pumi_node_getNumber(numbering,e))};
-  apf::setScalar(myfield, e, 0, myvar[0]);
-
-  i++;
-  printf("%d \n", i);
-}
-mesh->end(it);
-
-pumi_field_freeze (myfield);
-
-pumi_mesh_write(mesh,argv[2],"vtk");
-cout << "Mesh file written to file\n";
-
-
-
-// Use some library to solve the assembled matrix
-
-
-// Now run some code to generate the secondary variables and assign them to some field
-
-
-// Visualize the solution with Paraview directly if possible
+  mesh->end(it);
 
 
 
 
-pumi_finalize();
-MPI_Finalize();
-cout << "                                   End of Program\n";
+  // Freeze field and write out mesh
+  pumi_field_freeze (myfield);
+  pumi_mesh_write(mesh,argv[2],"vtk");
+  printf("Mesh file written to file\n");
+  pumi_finalize();
+  MPI_Finalize();
+  printf("                                   End of Program\n");
 }
 
 /*
@@ -347,18 +254,24 @@ BC natural_BC(int boundary_number){
   BC BCn;
   switch (boundary_number) {
     case 0:
-    BCn.first = 0;
-    BCn.second = 0;
+    BCn.first = 10;
+    BCn.second = 100;
     return BCn;
 
+    case 2:
+    BCn.first = 10;
+    BCn.second = -100;
+    return BCn;
+
+
     case 6:
-    BCn.first = 0;
-    BCn.second = 0;
+    BCn.first = 10;
+    BCn.second = 100;
     return BCn;
 
     case 16:
-    BCn.first = 0;
-    BCn.second = 0;
+    BCn.first = 10;
+    BCn.second = -100;
     return BCn;
 
 
@@ -406,4 +319,71 @@ BC.second = 0;
 return BC;
 }
 }
+*/
+
+
+
+
+
+/*
+
+// Check the element type routine, if it is working
+pMeshEnt e;
+pMeshIter it = mesh->begin(2);
+while ((e = mesh->iterate(it))){
+int element_type = get_element_type(mesh,e);
+//printf("The element type is %d\n", element_type);
+}
+mesh->end(it);
+
+
+
+
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+for (int i = 0; i < m; i++){
+//A(0,i) = 0;
+}
+A(5,5) = 10000;
+b(5) = -10000;
+*/
+// print the global stiffness matrix
+/*
+for (int i = 0; i < m; i++){
+printf("Row %d ", i);
+for (int j = 0; j < m; j++){
+printf(" %3.2f ", A[i][j]);
+}
+printf("\n");
+}
+*/
+
+// Check the known vector
+/*
+for (int i = 0; i < m; i++){
+printf("row %d   known  %f \n", i, b(i));
+}
+*/
+
+/*
+cout << "Here is the matrix A:\n" << A << endl;
+cout << "Here is the right hand side b:\n" << b << endl;
+cout << "The Full Piv LU solution is:\n"
+<< A.fullPivLu().solve(b) << endl;
 */

@@ -1,3 +1,3 @@
 git add ./*
-git commit -m "Used Eigen to solve. Able to output some solution. Need to debug."
+git commit -m "Checked solution. Working fine, getting reasonable results."
 git push -u origin master

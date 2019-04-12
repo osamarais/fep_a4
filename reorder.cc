@@ -49,16 +49,16 @@ pMeshEnt getStart(pMesh &mesh, pGeom &g){
 
 pNumbering reorder(pMesh &mesh, pMeshEnt &startingvertex){
   pShape myshape = pumi_mesh_getShape(mesh);
-  pNumbering mynum =  pumi_numbering_create(mesh,"mynewnumbering",myshape);
+  pNumbering mynum =  pumi_numbering_create(mesh,"Reordered Nodes",myshape);
   //pMeshTag facenum =  pumi_mesh_createIntTag(mesh,"myfacenumbering",1);
   pShape myfaceshape = pumi_shape_getConstant(2);
-  pNumbering facenum = pumi_numbering_create(mesh,"myfacenumbering",myfaceshape);
+  pNumbering facenum = pumi_numbering_create(mesh,"Reordered Faces",myfaceshape);
 
   // First get the total number of nodes
   int labelnode = 0;
   labelnode += (pumi_shape_getNumNode(myshape, 0) * pumi_mesh_getNumEnt(mesh,0));
   labelnode += (pumi_shape_getNumNode(myshape, 1) * pumi_mesh_getNumEnt(mesh,1));
-  printf("The total number of nodes is %d\n", labelnode-1);
+  //printf("The total number of nodes is %d\n", labelnode-1);
   // Now get the total number of faces since we will be labelling them also
   int labelface = pumi_mesh_getNumEnt(mesh,2);
   //printf("The total number of faces is %d\n", labelface-1);
@@ -187,7 +187,6 @@ pNumbering reorder(pMesh &mesh, pMeshEnt &startingvertex){
     myq.pop_front();
     //printf("Total labelled nodes:  %d\n", pumi_numbering_getNumNode(mynum));
   }
-  printf("Checking numbering  %d\n", pumi_numbering_getNumNode(mynum));
   return mynum;
 }
 

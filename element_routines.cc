@@ -1232,8 +1232,8 @@ void edge_routine(pMesh mesh, boundary_struct edge, pNumbering numbering, std::v
       c.row = pumi_node_getNumber (numbering, adjacent[i]);
       c.column = 0;
       edge_contributions.push_back(c);
-      printf("Row %d ", c.row);
-      printf("known %f \n", c.known);
+      //printf("Row %d ", c.row);
+      //printf("known %f \n", c.known);
     }
 
 
